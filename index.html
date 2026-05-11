@@ -1,0 +1,736 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小樣兒園藝 YourGarden | 職人植選</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --concrete-bg: #d8d8d8;
+            --concrete-grain: #c0c0c0;
+            --dark-pot: #121212;
+            --text-main: #222;
+            --text-sub: #666;
+            --accent-green: #4e5a4d;
+            --error-red: #cc0000;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: var(--concrete-bg);
+            background-image: radial-gradient(var(--concrete-grain) 1px, transparent 0);
+            background-size: 30px 30px;
+            color: var(--text-main);
+            font-family: 'Noto Serif TC', serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── 頂部 ── */
+        .top-nav {
+            width: 100%; padding: 20px 40px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; gap: 20px; position: relative; z-index: 100;
+        }
+        .info-panel {
+            background: rgba(216,216,216,0.8); backdrop-filter: blur(10px);
+            padding: 15px 20px; border-radius: 15px; border: 1px solid rgba(0,0,0,0.05);
+            font-size: 0.8rem; line-height: 1.6; letter-spacing: 1px;
+            box-shadow: 10px 10px 30px rgba(0,0,0,0.05); flex: 1; min-width: 200px;
+        }
+        .header-center { text-align: center; flex: 2; min-width: 280px; }
+        .logo { font-size: 2.2rem; letter-spacing: 0.5rem; font-weight: 700; color: var(--dark-pot); text-transform: uppercase; display: block; cursor: default; }
+        .logo-sub { font-size: 1rem; color: #555; letter-spacing: 4px; font-weight: 700; margin-top: 5px; }
+        .brand-slogan { font-size: 0.8rem; color: var(--text-sub); letter-spacing: 1px; font-weight: 300; margin-top: 8px; }
+        .shipping-info { text-align: center; }
+        .shipping-info strong { display: block; white-space: nowrap; margin-bottom: 5px; font-size: 0.8rem; }
+        .unlimited { display: block; text-align: center; font-size: 0.75rem; color: #555; margin-top: 5px; font-weight: 700; border-top: 1px dashed rgba(0,0,0,0.1); padding-top: 5px; }
+
+        /* ── 篩選器 ── */
+        .filter-section { max-width: 1000px; margin: 0 auto 10px; background: rgba(255,255,255,0.2); padding: 25px; border-radius: 20px; border: 1px solid rgba(0,0,0,0.05); display: flex; flex-direction: column; gap: 20px; align-items: center; }
+        .filter-row { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; width: 100%; }
+        .filter-group { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+        .filter-group label.group-title { font-size: 0.85rem; font-weight: 700; color: var(--accent-green); letter-spacing: 1px; }
+        .select-wrapper { position: relative; min-width: 160px; }
+        .select-wrapper::after { content: '▼'; font-size: 0.6rem; color: #999; position: absolute; right: 15px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+        .filter-select { padding: 10px 30px 10px 20px; border-radius: 12px; border: 1px solid #bbb; background: white; font-family: inherit; font-size: 0.85rem; outline: none; width: 100%; color: var(--text-main); font-weight: 500; text-align: center; text-align-last: center; appearance: none; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+        .checkbox-item { display: flex; align-items: center; gap: 5px; font-size: 0.85rem; cursor: pointer; color: var(--text-main); font-weight: 500; }
+        .checkbox-item input { cursor: pointer; accent-color: var(--accent-green); width: 16px; height: 16px; }
+        .status-filter { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+        .status-pill { padding: 6px 18px; border-radius: 20px; border: 1.5px solid rgba(0,0,0,0.15); background: white; font-family: inherit; font-size: 0.78rem; cursor: pointer; font-weight: 700; letter-spacing: 0.5px; transition: all 0.2s; }
+        .status-pill.active { background: var(--dark-pot); color: white; border-color: var(--dark-pot); }
+
+        /* ── 產品列表 ── */
+        #product-container { max-width: 1200px; margin: 0 auto 100px; display: grid; grid-template-columns: repeat(3, 230px); justify-content: center; gap: 40px 60px; padding: 0 20px; }
+        .plant-card { width: 100%; max-width: 230px; cursor: pointer; transition: 0.5s ease; margin: 0 auto; position: relative; }
+        .plant-card:hover { transform: translateY(-10px); }
+        .plant-card.all-soldout { opacity: 0.65; cursor: default; }
+        .plant-card.all-soldout:hover { transform: none; }
+        .stock-badge { position: absolute; top: 10px; left: 10px; z-index: 10; padding: 4px 10px; border-radius: 10px; font-size: 0.65rem; font-weight: 700; letter-spacing: 1px; }
+        .badge-preorder { background: rgba(138,117,85,0.85); color: white; }
+        .badge-soldout  { background: rgba(120,120,120,0.85); color: white; }
+        .img-mask { width: 100%; aspect-ratio: 1/1.3; background: var(--dark-pot); border-radius: 60% 40% 70% 30% / 40% 50% 60% 70%; overflow: hidden; box-shadow: 15px 15px 30px rgba(0,0,0,0.1); position: relative; }
+        .img-mask img { width: 100%; height: 100%; object-fit: cover; }
+        .soldout-overlay { position: absolute; inset: 0; background: rgba(180,180,180,0.45); display: flex; align-items: center; justify-content: center; pointer-events: none; }
+        .soldout-overlay span { background: rgba(0,0,0,0.55); color: white; padding: 7px 16px; border-radius: 20px; font-size: 0.75rem; font-weight: 700; letter-spacing: 2px; }
+        .card-info { margin-top: 15px; text-align: center; overflow: hidden; width: 100%; }
+        .card-info h2 { font-size: clamp(0.7rem, 2.5vw, 1rem); letter-spacing: 1px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .price-display { color: var(--accent-green); font-weight: 700; font-size: 0.9rem; margin-top: 5px; }
+        .loading-msg { text-align: center; padding: 60px 20px; color: var(--text-sub); font-size: 0.9rem; letter-spacing: 2px; grid-column: 1/-1; }
+
+        /* ── 詳情頁 ── */
+        .detail-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); backdrop-filter: blur(12px); z-index: 1000; overflow-y: auto; }
+        .detail-content { background: var(--concrete-bg); max-width: 1000px; margin: 40px auto; border-radius: 30px; display: flex; position: relative; overflow: hidden; }
+        .detail-left-gallery { flex: 0 0 430px; padding: 25px; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 10px; align-content: start; }
+        .zoom-container { width: 100%; height: 190px; overflow: hidden; border-radius: 14px; cursor: zoom-in; }
+        .zoom-container img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s ease; }
+        .zoom-container:hover img { transform: scale(1.06); }
+        .detail-right { flex: 1; padding: 40px 45px; overflow-y: auto; max-height: 90vh; }
+        .section-title { font-weight: 700; color: var(--accent-green); margin-top: 28px; margin-bottom: 12px; border-bottom: 1px solid rgba(0,0,0,0.1); padding-bottom: 5px; font-size: 0.9rem; letter-spacing: 2px; }
+        .note-box { font-size: 0.85rem; color: #555; background: rgba(255,255,255,0.3); padding: 18px; border-radius: 15px; border: 1px dashed rgba(0,0,0,0.1); line-height: 1.8; }
+
+        /* 尺寸選擇 */
+        .variant-selector { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+        .variant-btn { padding: 7px 13px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,0.15); background: white; font-family: inherit; font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: all 0.18s; white-space: nowrap; }
+        .variant-btn:hover:not(.v-soldout) { border-color: var(--accent-green); }
+        .variant-btn.selected { background: var(--dark-pot); color: white; border-color: var(--dark-pot); }
+        .variant-btn.v-soldout { opacity: 0.4; cursor: not-allowed; text-decoration: line-through; }
+        .variant-btn.v-preorder { border-color: #8a7555; color: #8a7555; }
+        .variant-btn.v-preorder.selected { background: #8a7555; color: white; }
+        .variant-info-box { background: rgba(255,255,255,0.35); border-radius: 12px; padding: 14px 18px; margin-top: 14px; font-size: 0.85rem; line-height: 1.8; border: 1px solid rgba(0,0,0,0.06); min-height: 60px; }
+        .variant-price { font-size: 1.5rem; color: var(--accent-green); font-weight: 700; margin-top: 14px; }
+
+        .add-cart-row { display: flex; align-items: center; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+        .qty-control { display: flex; align-items: center; background: white; border-radius: 20px; padding: 5px 12px; border: 1px solid #ccc; }
+        .qty-control button { border: none; background: none; cursor: pointer; padding: 0 8px; font-size: 1.1rem; color: var(--dark-pot); }
+        .qty-val { width: 28px; text-align: center; font-size: 0.95rem; }
+        .add-btn { background: var(--accent-green); color: white; border: none; padding: 10px 22px; border-radius: 20px; cursor: pointer; font-family: inherit; font-weight: 700; font-size: 0.85rem; transition: opacity 0.2s; }
+        .add-btn:hover { opacity: 0.8; }
+        .add-btn:disabled { background: #ccc; color: #999; cursor: not-allowed; }
+
+        /* ── 浮動按鈕 ── */
+        #checkout-float {
+            position: fixed; bottom: 28px; right: 24px;
+            background: var(--dark-pot); color: white;
+            padding: 12px 22px; border-radius: 50px;
+            display: none; cursor: pointer; z-index: 1100;
+            font-weight: 700; font-size: 0.82rem;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+            border: none; font-family: inherit;
+            transition: transform 0.2s;
+        }
+        #checkout-float:hover { transform: scale(1.05); }
+
+        /* ── 試算頁 Modal ── */
+        .cart-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.75); z-index: 2000; overflow-y: auto; padding: 15px; }
+        .cart-inner { background: var(--concrete-bg); max-width: 560px; width: 100%; margin: 30px auto; border-radius: 30px; padding: 35px 30px; position: relative; }
+
+        /* 說明橫幅 */
+        .trial-notice {
+            background: rgba(138,117,85,0.12); border: 1px solid rgba(138,117,85,0.3);
+            border-radius: 12px; padding: 12px 16px; margin-bottom: 22px;
+            font-size: 0.8rem; color: #7a6040; line-height: 1.6; text-align: center; letter-spacing: 0.5px;
+        }
+
+        .cart-item-row { display: flex; justify-content: space-between; align-items: flex-start; padding: 12px 0; border-bottom: 1px dashed rgba(0,0,0,0.1); gap: 10px; }
+        .cart-item-info { flex: 1; }
+        .cart-item-name { font-size: 0.88rem; font-weight: 700; line-height: 1.5; }
+        .cart-item-sub  { font-size: 0.75rem; color: #888; margin-top: 2px; }
+        .cart-item-price { font-weight: 700; color: var(--accent-green); font-size: 0.9rem; white-space: nowrap; }
+        .cart-item-del { background: none; border: none; color: #ccc; cursor: pointer; font-size: 1rem; padding: 0 4px; }
+        .cart-item-del:hover { color: #e00; }
+
+        /* 地區選擇 */
+        .region-section { margin: 20px 0; }
+        .region-label { font-size: 0.78rem; font-weight: 700; color: var(--accent-green); letter-spacing: 1px; margin-bottom: 10px; }
+        .region-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .region-btn {
+            padding: 10px 8px; border-radius: 10px; border: 1.5px solid rgba(0,0,0,0.12);
+            background: white; font-family: inherit; font-size: 0.75rem; font-weight: 700;
+            cursor: pointer; transition: all 0.15s; text-align: center; line-height: 1.4;
+        }
+        .region-btn:hover { border-color: var(--accent-green); }
+        .region-btn.selected { background: var(--dark-pot); color: white; border-color: var(--dark-pot); }
+        .region-btn.unavailable { background: rgba(0,0,0,0.04); color: #bbb; cursor: not-allowed; border-color: rgba(0,0,0,0.06); }
+
+        /* 運費／總計 */
+        .price-summary { background: rgba(255,255,255,0.4); border-radius: 14px; padding: 16px 18px; margin-top: 16px; }
+        .price-row { display: flex; justify-content: space-between; font-size: 0.88rem; margin-bottom: 8px; }
+        .price-row.total { font-weight: 700; font-size: 1rem; color: var(--accent-green); border-top: 1px solid rgba(0,0,0,0.1); padding-top: 10px; margin-top: 4px; margin-bottom: 0; }
+        .ship-notice { font-size: 0.78rem; margin-top: 6px; padding: 8px 12px; border-radius: 8px; }
+        .ship-notice.warn { background: rgba(204,0,0,0.06); color: var(--error-red); }
+        .ship-notice.ok   { background: rgba(78,90,77,0.08); color: var(--accent-green); }
+        .ship-notice.none { background: rgba(0,0,0,0.04); color: #999; }
+
+        /* 送出按鈕 */
+        .send-order-btn {
+            width: 100%; padding: 15px; border-radius: 14px; border: none;
+            background: var(--dark-pot); color: white; font-family: inherit;
+            font-size: 1rem; font-weight: 700; cursor: pointer; margin-top: 18px;
+            letter-spacing: 2px; transition: opacity 0.2s;
+        }
+        .send-order-btn:hover { opacity: 0.85; }
+        .send-order-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        /* 複製訊息 Modal */
+        #copy-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 3000; align-items: center; justify-content: center; padding: 20px; }
+        #copy-modal.show { display: flex; }
+        .copy-box { background: white; border-radius: 24px; padding: 30px; width: 100%; max-width: 440px; }
+        .copy-box h3 { font-size: 1rem; margin-bottom: 6px; letter-spacing: 1px; }
+        .copy-hint { font-size: 0.78rem; color: #888; margin-bottom: 14px; line-height: 1.6; }
+        .copy-hint strong { color: var(--accent-green); }
+        .copy-text-area {
+            width: 100%; background: #f5f5f5; border: 1px solid #ddd;
+            border-radius: 12px; padding: 16px; font-family: inherit;
+            font-size: 0.85rem; line-height: 1.8; resize: none;
+            color: var(--text-main); min-height: 140px;
+        }
+        .copy-btn {
+            width: 100%; padding: 13px; border-radius: 12px; border: none;
+            background: var(--dark-pot); color: white; font-family: inherit;
+            font-size: 0.9rem; font-weight: 700; cursor: pointer; margin-top: 12px;
+            letter-spacing: 1px; transition: opacity 0.2s;
+        }
+        .copy-btn:hover { opacity: 0.85; }
+        .copy-btn.copied { background: var(--accent-green); }
+        .close-copy-btn { width: 100%; padding: 10px; border-radius: 12px; border: 1px solid #ddd; background: none; font-family: inherit; font-size: 0.82rem; color: #999; cursor: pointer; margin-top: 8px; }
+
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 2rem; cursor: pointer; color: var(--dark-pot); background: rgba(216,216,216,0.85); border: none; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; z-index: 20; backdrop-filter: blur(4px); }
+
+        /* 燈箱 */
+        #lightbox { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 9000; align-items: center; justify-content: center; cursor: zoom-out; }
+        #lightbox img { max-width: 90vw; max-height: 90vh; object-fit: contain; border-radius: 10px; }
+
+        #toast-notice { display: none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--dark-pot); color: white; padding: 13px 24px; border-radius: 30px; z-index: 5000; font-size: 0.88rem; white-space: nowrap; }
+
+        @media (max-width: 850px) {
+            .top-nav { padding: 20px; }
+            #product-container { grid-template-columns: repeat(2, 160px); gap: 20px; }
+            .detail-content { flex-direction: column; margin: 15px; }
+            .detail-left-gallery { flex: 0 0 auto; width: 100%; padding: 15px; }
+            .zoom-container { height: 140px; }
+            .detail-right { padding: 25px; max-height: none; }
+            .region-grid { grid-template-columns: 1fr 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="top-nav">
+    <div class="info-panel">
+        <strong>訂購請直接私訊IG</strong>
+        <a href="https://www.instagram.com/your_garden_5888/" target="_blank" rel="noopener"
+           style="display:block; color:#aaa; text-decoration:none; margin-top:4px; font-size:0.78rem; letter-spacing:1px;">
+            @your_garden_5888
+        </a>
+    </div>
+    <div class="header-center">
+        <span class="logo">YourGarden</span>
+        <p class="logo-sub">小樣兒園藝</p>
+        <p class="brand-slogan">在泥與光之間，尋找植物的形狀。</p>
+    </div>
+    <div class="info-panel shipping-info">
+        <strong>🌿 植物專車 特殊不封箱配送到家</strong>
+        (無上樓僅至一樓) (無法指定日期)<br>
+        北部+180 / 中部+200 / 南部+230
+        <span class="unlimited">滿 2000 元免運費</span>
+    </div>
+</nav>
+
+<section class="filter-section">
+    <div class="filter-row">
+        <div class="filter-group">
+            <label class="group-title">適合空間 <span style="font-size:0.7rem;color:#aaa;font-weight:400;">可多選</span></label>
+            <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" id="fs-indoor"  checked onchange="applyFilters()"> 室內</label>
+                <label class="checkbox-item"><input type="checkbox" id="fs-outdoor" checked onchange="applyFilters()"> 室外</label>
+            </div>
+        </div>
+        <div class="filter-group">
+            <label class="group-title">光照需求 <span style="font-size:0.7rem;color:#aaa;font-weight:400;">可多選</span></label>
+            <div class="checkbox-group">
+                <label class="checkbox-item"><input type="checkbox" id="fs-full"   checked onchange="applyFilters()"> 全日照</label>
+                <label class="checkbox-item"><input type="checkbox" id="fs-half"   checked onchange="applyFilters()"> 半日照</label>
+                <label class="checkbox-item"><input type="checkbox" id="fs-ind"    checked onchange="applyFilters()"> 間接光</label>
+                <label class="checkbox-item"><input type="checkbox" id="fs-bright" checked onchange="applyFilters()"> 明亮處</label>
+            </div>
+        </div>
+        <div class="filter-group">
+            <label class="group-title">庫存狀態</label>
+            <div class="status-filter">
+                <button class="status-pill active" onclick="setStatusFilter('instock',this)">現貨</button>
+
+            </div>
+        </div>
+    </div>
+    <div class="filter-group">
+        <label class="group-title">植物高度 (可多選)</label>
+        <div class="checkbox-group" id="height-checkboxes">
+            <label class="checkbox-item"><input type="checkbox" value="15-25" checked onchange="applyFilters()"> 小品: 15-25CM</label>
+            <label class="checkbox-item"><input type="checkbox" value="26-35" checked onchange="applyFilters()"> 中小品: 26-35CM</label>
+            <label class="checkbox-item"><input type="checkbox" value="36-55" checked onchange="applyFilters()"> 中品: 36-55CM</label>
+            <label class="checkbox-item"><input type="checkbox" value="56-75" checked onchange="applyFilters()"> 中大品: 56-75CM</label>
+            <label class="checkbox-item"><input type="checkbox" value="76-999" checked onchange="applyFilters()"> 大品: 76CM以上</label>
+        </div>
+    </div>
+</section>
+
+<main id="product-container">
+    <div class="loading-msg">🌿 植物資料載入中…</div>
+</main>
+<div id="modal-container"></div>
+
+<button id="checkout-float" onclick="openCart()">
+    🛒 完成挑選 試算總額（<span id="cart-count">0</span>）
+</button>
+<div id="toast-notice"></div>
+
+<!-- ── 試算頁 Modal ── -->
+<div id="cartModal" class="cart-modal">
+    <div class="cart-inner">
+        <button class="close-btn" onclick="closeCart()">&times;</button>
+        <h2 style="text-align:center; margin-bottom:16px; letter-spacing:3px; font-size:1.1rem;">購物車試算</h2>
+
+        <div class="trial-notice">
+            ⚠️ 此頁面僅為試算品項，非正式訂單<br>
+            <strong>訂購請私訊 IG 與我們聯繫</strong>
+        </div>
+
+        <div id="cart-list"></div>
+
+        <!-- 地區選擇 -->
+        <div class="region-section">
+            <p class="region-label">選擇配送地區</p>
+            <div class="region-grid">
+                <button class="region-btn" data-fee="180" data-label="北部" onclick="selectRegion(this)">
+                    北部<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">基隆/台北/新北/桃園/新竹</span>
+                </button>
+                <button class="region-btn" data-fee="200" data-label="中部" onclick="selectRegion(this)">
+                    中部<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">苗栗/台中/彰化</span>
+                </button>
+                <button class="region-btn" data-fee="230" data-label="南部" onclick="selectRegion(this)">
+                    南部<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">雲林/嘉義/台南/高雄</span>
+                </button>
+                <button class="region-btn" data-fee="5000" data-label="南投/宜蘭/屏東" onclick="selectRegion(this)">
+                    南投/宜蘭/屏東<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">滿5000免運出貨</span>
+                </button>
+                <button class="region-btn unavailable" data-fee="-1" data-label="台東/花蓮" onclick="selectRegion(this)">
+                    台東/花蓮<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">目前暫無配送</span>
+                </button>
+                <button class="region-btn" data-fee="0" data-label="自取" data-type="pickup" onclick="selectRegion(this)">
+                    自取 免運<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">不限金額</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 小計／運費／總計 -->
+        <div class="price-summary">
+            <div class="price-row"><span>商品小計</span><span id="sub-total">NT$ 0</span></div>
+            <div class="price-row"><span>配送費用</span><span id="ship-fee-display">請選擇地區</span></div>
+            <div class="price-row total"><span>總金額</span><span id="final-total">－</span></div>
+        </div>
+        <div id="ship-notice-box"></div>
+
+        <button class="send-order-btn" id="send-order-btn" onclick="openCopyModal()" disabled>送出品項</button>
+    </div>
+</div>
+
+<!-- ── 複製訊息 Modal ── -->
+<div id="copy-modal">
+    <div class="copy-box">
+        <h3>📋 複製訂購內容</h3>
+        <p class="copy-hint">複製以下內容，<strong>私訊給小樣兒園藝 IG</strong> 即可完成詢問！</p>
+        <textarea class="copy-text-area" id="copy-textarea" readonly></textarea>
+        <button class="copy-btn" id="copy-btn" onclick="copyText()">複製內容</button>
+        <button class="close-copy-btn" onclick="closeCopyModal()">關閉</button>
+    </div>
+</div>
+
+<!-- 燈箱 -->
+<div id="lightbox" onclick="closeLightbox()">
+    <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+    const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwhjPuOmNikL1yCaWe3XGB_E3b98e2tcYohOF68C4fNv-Gn1NUDF42NfpG_aDgNHmwa/exec';
+
+    let plantsData = [];
+    let cart = {};  // key: "植物名｜盆器", value: { price, qty, plantName, potLabel }
+    let currentStatusFilter = 'instock';
+    const selectedVariant = {};
+    let selectedRegion = null; // { fee, label, type } type: normal | conditional | unavailable
+
+    // ── 載入植物 ──
+    async function loadPlants() {
+        try {
+            const res  = await fetch(`${SCRIPT_URL}?action=getPlants`);
+            const json = await res.json();
+            if (json.success) {
+                plantsData = json.plants;
+                shufflePlants(plantsData);
+                renderCards();
+                renderModals();
+                checkUrlParam();
+            } else showLoadError();
+        } catch { showLoadError(); }
+    }
+
+    function showLoadError() {
+        document.getElementById('product-container').innerHTML =
+            '<div class="loading-msg" style="color:#999;">⚠️ 無法載入植物資料，請稍後再試</div>';
+    }
+
+    // ── 渲染卡片 ──
+    function renderCards() {
+        const container = document.getElementById('product-container');
+        container.innerHTML = '';
+
+        // 預購排後面，暫無存貨不顯示
+        const instock  = plantsData.filter(p => {
+            const vis = p.variants.filter(v => v.status !== 'hidden' && v.status !== 'soldout');
+            return vis.some(v => v.status === 'instock');
+        });
+        const preorder = plantsData.filter(p => {
+            const vis = p.variants.filter(v => v.status !== 'hidden' && v.status !== 'soldout');
+            return vis.length > 0 && vis.every(v => v.status === 'preorder');
+        });
+        const ordered = [...instock, ...preorder];
+
+        ordered.forEach(p => {
+            const vis = p.variants.filter(v => v.status !== 'hidden' && v.status !== 'soldout');
+            const isPreorder = vis.every(v => v.status === 'preorder');
+            container.innerHTML += `
+            <div class="plant-card" data-id="${p.plant_id}" onclick="openProduct('${p.plant_id}')">
+                <div class="img-mask">
+                    <img src="${p.card_img||''}" alt="${p.name}" loading="lazy">
+                </div>
+                <div class="card-info">
+                    <h2>${p.name}</h2>
+                    ${isPreorder ? '<div style="font-size:0.75rem;color:#aaa;margin-top:4px;letter-spacing:1px;">需預購</div>' : ''}
+                </div>
+            </div>`;
+        });
+    }
+
+    // ── 渲染詳情 Modal ──
+    function renderModals() {
+        const box = document.getElementById('modal-container');
+        box.innerHTML = '';
+        plantsData.forEach(p => {
+            const vis = p.variants.filter(v => v.status !== 'hidden');
+            const def = vis.find(v => v.status !== 'soldout') || vis[0];
+            selectedVariant[p.plant_id] = def;
+            const variantBtns = vis.map(v => {
+                const cls = v.status==='soldout'?'v-soldout':v.status==='preorder'?'v-preorder':'';
+                const sel = v.variant_id===def?.variant_id?'selected':'';
+                return `<button class="variant-btn ${cls} ${sel}" ${v.status==='soldout'?'disabled':''} data-vid="${v.variant_id}" onclick="selectVariant('${p.plant_id}','${v.variant_id}')">${v.pot_label}</button>`;
+            }).join('');
+            const imgs = [...(def?.images||[])];
+            while (imgs.length < 4) imgs.push(imgs[0]||'');
+
+            box.innerHTML += `
+            <div id="${p.plant_id}Overlay" class="detail-overlay">
+                <div class="detail-content">
+                    <button class="close-btn" onclick="closeProduct('${p.plant_id}')">&times;</button>
+                    <div class="detail-left-gallery" id="gallery-${p.plant_id}">
+                        ${imgs.map(src=>`<div class="zoom-container" onclick="openLightbox('${src}')"><img src="${src}" alt="${p.name}" loading="lazy"></div>`).join('')}
+                    </div>
+                    <div class="detail-right">
+                        <h1>${p.name}</h1>
+                        <div class="section-title">選擇尺寸 SIZE</div>
+                        <div class="variant-selector">${variantBtns}</div>
+                        <div class="variant-info-box" id="vinfo-${p.plant_id}">${renderVInfo(def)}</div>
+                        <div class="variant-price" id="vprice-${p.plant_id}">NT$ ${def?.price||'-'}</div>
+                        <div class="add-cart-row">
+                            <div class="qty-control">
+                                <button type="button" onclick="changeQty('${p.plant_id}',-1)">-</button>
+                                <span class="qty-val" id="qty-${p.plant_id}">1</span>
+                                <button type="button" onclick="changeQty('${p.plant_id}',1)">+</button>
+                            </div>
+                            <button class="add-btn" id="addbtn-${p.plant_id}" onclick="addToCart('${p.plant_id}','${p.name}')">
+                                加入購物車試算
+                            </button>
+                        </div>
+                        <div class="section-title">照顧指南 GUIDE</div>
+                        <div style="font-size:0.95rem;line-height:1.6;">☀️ ${p.sun_text}<br>💧 ${p.water}<br>🏡 ${p.space_text}</div>
+                        <div class="section-title">注意事項 NOTES</div>
+                        <div class="note-box">${p.notes.map(n=>`<div style="margin-bottom:5px;">🌿 ${n}</div>`).join('')}</div>
+                        <div style="margin-top:20px;">
+                            <button onclick="shareProduct('${p.plant_id}')" style="background:none;border:1px solid #ccc;border-radius:20px;padding:8px 18px;font-family:inherit;font-size:0.78rem;cursor:pointer;color:var(--text-sub);">🔗 分享此植物</button>
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+        });
+    }
+
+    function renderVInfo(v) {
+        if (!v) return '';
+        return `盆器：${v.size_label}<br>含盆高度：約 ${v.height_min}-${v.height_max} cm`;
+    }
+
+    // ── 選擇尺寸 ──
+    function selectVariant(plantId, variantId) {
+        const p = plantsData.find(pl=>pl.plant_id===plantId);
+        const v = p?.variants.find(vv=>vv.variant_id===variantId);
+        if (!v||v.status==='soldout') return;
+        selectedVariant[plantId] = v;
+        document.getElementById(plantId+'Overlay').querySelectorAll('.variant-btn').forEach(btn=>{
+            btn.classList.toggle('selected', btn.dataset.vid===variantId);
+        });
+        document.getElementById(`vinfo-${plantId}`).innerHTML = renderVInfo(v);
+        document.getElementById(`vprice-${plantId}`).innerText = `NT$ ${v.price}`;
+        const imgs = [...v.images]; while(imgs.length<4) imgs.push(imgs[0]||'');
+        document.getElementById(`gallery-${plantId}`).querySelectorAll('.zoom-container').forEach((el,i)=>{
+            el.querySelector('img').src = imgs[i]||'';
+            el.onclick = ()=>openLightbox(imgs[i]||'');
+        });
+        const btn = document.getElementById(`addbtn-${plantId}`);
+        btn.disabled = false;
+        btn.innerText = v.status==='preorder'?'加入購物車試算（預購）':'加入購物車試算';
+    }
+
+    // ── 篩選 ──
+    function setStatusFilter(val,btn) {
+        currentStatusFilter = val;
+        document.querySelectorAll('.status-pill').forEach(b=>b.classList.remove('active'));
+        btn.classList.add('active');
+        applyFilters();
+    }
+    function applyFilters() {
+        // 空間多選
+        const spaceChecked = [];
+        if (document.getElementById('fs-indoor')?.checked)  spaceChecked.push('室內');
+        if (document.getElementById('fs-outdoor')?.checked) spaceChecked.push('室外');
+        // 光照多選
+        const sunChecked = [];
+        if (document.getElementById('fs-full')?.checked)   sunChecked.push('全日照');
+        if (document.getElementById('fs-half')?.checked)   sunChecked.push('半日照');
+        if (document.getElementById('fs-ind')?.checked)    sunChecked.push('間接光');
+        if (document.getElementById('fs-bright')?.checked) sunChecked.push('明亮處');
+
+        const checkedH = Array.from(document.querySelectorAll('#height-checkboxes input:checked')).map(cb=>{
+            const r=cb.value.split('-'); return {min:parseInt(r[0]),max:parseInt(r[1])};
+        });
+        plantsData.forEach(p=>{
+            const card=document.querySelector(`.plant-card[data-id="${p.plant_id}"]`); if(!card) return;
+            // 未勾選任何 = 全部通過
+            const matchSpace = spaceChecked.length===0 || spaceChecked.some(s=>p.space.includes(s));
+            const matchSun   = sunChecked.length===0   || sunChecked.some(s=>p.sun.includes(s));
+            const matchH     = checkedH.length===0||p.variants.some(v=>v.status!=='hidden'&&checkedH.some(r=>v.height_min<=r.max&&v.height_max>=r.min));
+            const visV       = p.variants.filter(v=>v.status!=='hidden');
+            const matchStatus = currentStatusFilter==='instock'
+                ? visV.some(v=>v.status==='instock')
+                : visV.some(v=>v.status===currentStatusFilter);
+            card.style.display=(matchSpace&&matchSun&&matchH&&matchStatus)?'block':'none';
+        });
+    }
+
+    // ── Modal 開關 ──
+    function openProduct(id) { document.getElementById(id+'Overlay').style.display='block'; document.body.style.overflow='hidden'; }
+    function closeProduct(id) { document.getElementById(id+'Overlay').style.display='none'; document.body.style.overflow='auto'; history.replaceState(null,'',window.location.pathname); }
+    function openLightbox(src) { document.getElementById('lightbox-img').src=src; document.getElementById('lightbox').style.display='flex'; }
+    function closeLightbox() { document.getElementById('lightbox').style.display='none'; }
+    function shareProduct(id) { navigator.clipboard.writeText(`${location.origin}${location.pathname}?id=${id}`).then(()=>showToast('連結已複製 🔗')); }
+    function checkUrlParam() { const id=new URLSearchParams(location.search).get('id'); if(id&&plantsData.find(p=>p.plant_id===id)) openProduct(id); }
+
+    // ── 購物車 ──
+    function changeQty(pid,d) { const el=document.getElementById(`qty-${pid}`); if(el) el.innerText=Math.max(1,parseInt(el.innerText)+d); }
+
+    function addToCart(plantId, plantName) {
+        const v = selectedVariant[plantId]; if(!v) return;
+        const qty = parseInt(document.getElementById(`qty-${plantId}`)?.innerText||1);
+        const key = `${plantName}｜${v.pot_label}`;
+        if (cart[key]) cart[key].qty += qty;
+        else cart[key] = { price: v.price, qty, plantName, potLabel: v.pot_label };
+        const qe = document.getElementById(`qty-${plantId}`); if(qe) qe.innerText='1';
+        updateCartCount();
+        showToast('已加入購物車試算 🌿');
+    }
+
+    function updateCartCount() {
+        const count = Object.values(cart).reduce((a,b)=>a+b.qty,0);
+        document.getElementById('cart-count').innerText = count;
+        document.getElementById('checkout-float').style.display = count>0?'block':'none';
+    }
+
+    // ── 試算頁 ──
+    function openCart() {
+        renderCartList();
+        updatePriceSummary();
+        document.getElementById('cartModal').style.display='block';
+        document.body.style.overflow='hidden';
+    }
+    function closeCart() {
+        document.getElementById('cartModal').style.display='none';
+        document.body.style.overflow='auto';
+    }
+
+    function renderCartList() {
+        const list = document.getElementById('cart-list');
+        list.innerHTML = '';
+        if (!Object.keys(cart).length) {
+            list.innerHTML = '<p style="text-align:center;color:#aaa;padding:20px;font-size:0.85rem;">購物車是空的</p>';
+            return;
+        }
+        Object.entries(cart).forEach(([key,item])=>{
+            const safeKey = key.replace(/'/g, "\\'");
+            list.innerHTML += `
+            <div class="cart-item-row">
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${item.plantName}</div>
+                    <div class="cart-item-sub">${item.potLabel}</div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+                    <div style="display:flex;align-items:center;background:white;border-radius:16px;padding:3px 10px;border:1px solid #ccc;gap:4px;">
+                        <button onclick="changeCartQty('${safeKey}',-1)" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#555;padding:0 4px;">-</button>
+                        <span style="width:22px;text-align:center;font-size:0.88rem;">${item.qty}</span>
+                        <button onclick="changeCartQty('${safeKey}',1)" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#555;padding:0 4px;">+</button>
+                    </div>
+                    <span class="cart-item-price">NT$ ${item.price * item.qty}</span>
+                    <button class="cart-item-del" onclick="removeFromCart('${safeKey}')">✕</button>
+                </div>
+            </div>`;
+        });
+    }
+
+    function removeFromCart(key) {
+        delete cart[key];
+        updateCartCount();
+        renderCartList();
+        updatePriceSummary();
+    }
+    function changeCartQty(key, delta) {
+        if (!cart[key]) return;
+        cart[key].qty = Math.max(1, cart[key].qty + delta);
+        updateCartCount();
+        renderCartList();
+        updatePriceSummary();
+    }
+
+    // ── 地區選擇 ──
+    function selectRegion(btn) {
+        const fee   = parseInt(btn.dataset.fee);
+        const label = btn.dataset.label;
+        const type  = btn.dataset.type || '';
+        if (fee === -1) return; // unavailable
+
+        document.querySelectorAll('.region-btn').forEach(b=>b.classList.remove('selected'));
+        btn.classList.add('selected');
+
+        if (fee === 5000) {
+            selectedRegion = { fee: 5000, label, type: 'conditional' };
+        } else if (type === 'pickup') {
+            selectedRegion = { fee: 0, label, type: 'pickup' };
+        } else {
+            selectedRegion = { fee, label, type: 'normal' };
+        }
+        updatePriceSummary();
+    }
+
+    function updatePriceSummary() {
+        const sub = Object.values(cart).reduce((a,b)=>a+(b.price*b.qty),0);
+        document.getElementById('sub-total').innerText = `NT$ ${sub}`;
+
+        const noticeBox = document.getElementById('ship-notice-box');
+        const sendBtn   = document.getElementById('send-order-btn');
+        let shipFee = 0, shipText = '請選擇地區', totalText = '－', canSend = false;
+
+        if (!selectedRegion) {
+            noticeBox.innerHTML = '';
+            sendBtn.disabled = true;
+        } else if (selectedRegion.type === 'unavailable') {
+            shipText = '無法配送';
+            totalText = '－';
+            noticeBox.innerHTML = `<div class="ship-notice none">目前尚在努力，暫無配送至台東/花蓮</div>`;
+            sendBtn.disabled = true;
+        } else if (selectedRegion.type === 'pickup') {
+            shipFee = 0; shipText = '免運（自取）'; totalText = `NT$ ${sub}`;
+            noticeBox.innerHTML = `<div class="ship-notice ok">✅ 自取免運，不限金額</div>`;
+            canSend = Object.keys(cart).length > 0;
+        } else if (selectedRegion.type === 'conditional') {
+            if (sub >= 5000) {
+                shipFee = 0; shipText = '免運'; totalText = `NT$ ${sub}`;
+                noticeBox.innerHTML = `<div class="ship-notice ok">✅ 已達5000元，免運費出貨</div>`;
+                canSend = true;
+            } else {
+                shipText = '未達門檻';
+                totalText = '－';
+                noticeBox.innerHTML = `<div class="ship-notice warn">⚠️ 此地區訂單需滿 NT$5,000 才有出貨，目前差 NT$${5000-sub}</div>`;
+                canSend = false;
+            }
+        } else {
+            if (sub >= 2000) {
+                shipFee = 0;
+                shipText = '免運';
+                totalText = `NT$ ${sub}`;
+                noticeBox.innerHTML = `<div class="ship-notice ok">✅ 已達2000元，免運費出貨</div>`;
+            } else {
+                shipFee = selectedRegion.fee;
+                shipText = `NT$ ${shipFee}`;
+                totalText = `NT$ ${sub + shipFee}`;
+                noticeBox.innerHTML = `<div class="ship-notice none" style="color:#888;">滿 NT$2,000 免運費，目前差 NT$${2000 - sub}</div>`;
+            }
+            canSend = Object.keys(cart).length > 0;
+        }
+
+        document.getElementById('ship-fee-display').innerText = shipText;
+        document.getElementById('final-total').innerText = totalText;
+        sendBtn.disabled = !canSend || Object.keys(cart).length === 0;
+    }
+
+    // ── 複製訊息 Modal ──
+    function openCopyModal() {
+        const lines = ['老闆你好 我要購買：'];
+        Object.values(cart).forEach(item=>{
+            lines.push(`${item.plantName}｜${item.potLabel} x${item.qty}  NT$${item.price*item.qty}`);
+        });
+        // 加運費資訊
+        if (selectedRegion) {
+            const sub = Object.values(cart).reduce((a,b)=>a+(b.price*b.qty),0);
+            if (selectedRegion.type === 'pickup') {
+                lines.push(`
+配送方式：自取（免運）`);
+            } else if (selectedRegion.type === 'normal') {
+                if (sub >= 2000) {
+                    lines.push(`
+配送地區：${selectedRegion.label}（滿2000免運）`);
+                } else {
+                    lines.push(`
+配送地區：${selectedRegion.label} 運費 +NT$${selectedRegion.fee}`);
+                }
+            } else if (selectedRegion.type === 'conditional') {
+                lines.push(`
+配送地區：${selectedRegion.label}（滿5000免運）`);
+            }
+        }
+        document.getElementById('copy-textarea').value = lines.join('\n');
+        document.getElementById('copy-btn').innerText = '複製內容';
+        document.getElementById('copy-btn').classList.remove('copied');
+        document.getElementById('copy-modal').classList.add('show');
+    }
+    function closeCopyModal() { document.getElementById('copy-modal').classList.remove('show'); }
+
+    function copyText() {
+        const ta = document.getElementById('copy-textarea');
+        navigator.clipboard.writeText(ta.value).then(()=>{
+            const btn = document.getElementById('copy-btn');
+            btn.innerText = '✅ 已複製！去私訊IG吧 🌿';
+            btn.classList.add('copied');
+        });
+    }
+
+    function showToast(msg) {
+        const t=document.getElementById('toast-notice');
+        t.innerText=msg; t.style.display='block';
+        setTimeout(()=>t.style.display='none',2500);
+    }
+
+    function shufflePlants(arr) {
+        for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}
+    }
+
+    loadPlants();
+</script>
+</body>
+</html>
