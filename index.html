@@ -29,11 +29,12 @@
         .filter-toggle-wrap { max-width:1000px; margin:0 auto 0; display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 20px; }
         .filter-toggle-btn {
             width:100%; padding:16px 20px; border-radius:16px; border:1.5px solid rgba(0,0,0,0.1);
-            background:rgba(255,255,255,0.35); font-family:inherit; font-size:0.88rem;
+            background:rgba(255,255,255,0.35); font-family:inherit; font-size:0.85rem;
             font-weight:700; cursor:pointer; transition:all 0.2s; text-align:center;
             color:var(--text-main); line-height:1.5; letter-spacing:0.5px;
             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
         }
+        .filter-toggle-btn span { white-space:nowrap; display:block; width:100%; text-align:center; }
         .filter-toggle-btn:hover { background:rgba(255,255,255,0.6); border-color:var(--accent-green); }
         .filter-toggle-btn.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
         .filter-toggle-btn.active .ft-sub { color:rgba(255,255,255,0.55); }
@@ -205,10 +206,10 @@
 <!-- 篩選切換按鈕（左右並排） -->
 <div class="filter-toggle-wrap">
     <button class="filter-toggle-btn" id="ftbtn-detail" onclick="switchFilter('detail')">
-        依據空間及大小選擇
+        <span>依據空間及大小選擇</span>
     </button>
     <button class="filter-toggle-btn" id="ftbtn-lazy" onclick="switchFilter('lazy')">
-        我想懶懶的找植物 🌱
+        <span>我想懶懶的找植物 🌱</span>
         <span class="ft-sub">依據小樣兒精選 HashTag 快速挑選</span>
     </button>
 </div>
