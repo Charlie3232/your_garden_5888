@@ -26,18 +26,17 @@
         .unlimited { display:block; text-align:center; font-size:0.75rem; color:#555; margin-top:5px; font-weight:700; border-top:1px dashed rgba(0,0,0,0.1); padding-top:5px; }
 
         /* ── 篩選切換按鈕 ── */
-        .filter-toggle-wrap { max-width:1000px; margin:0 auto 0; display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 20px; }
+        .filter-toggle-wrap { max-width:1000px; margin:0 auto 0; display:flex; flex-direction:column; gap:10px; padding:0 20px; }
         .filter-toggle-btn {
-            padding:18px 20px; border-radius:16px; border:1.5px solid rgba(0,0,0,0.1);
-            background:rgba(255,255,255,0.35); font-family:inherit; font-size:0.88rem;
+            width:100%; padding:16px 24px; border-radius:16px; border:1.5px solid rgba(0,0,0,0.1);
+            background:rgba(255,255,255,0.35); font-family:inherit; font-size:0.9rem;
             font-weight:700; cursor:pointer; transition:all 0.2s; text-align:center;
-            color:var(--text-main); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
-            letter-spacing:0.5px;
+            color:var(--text-main); line-height:1.6; letter-spacing:0.5px;
         }
         .filter-toggle-btn:hover { background:rgba(255,255,255,0.6); border-color:var(--accent-green); }
         .filter-toggle-btn.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
-        .filter-toggle-btn.active .ft-sub { color:rgba(255,255,255,0.6); }
-        .ft-sub { font-size:0.68rem; font-weight:400; color:#aaa; letter-spacing:0.5px; }
+        .filter-toggle-btn.active .ft-sub { color:rgba(255,255,255,0.55); }
+        .ft-sub { font-size:0.72rem; font-weight:400; color:#aaa; letter-spacing:0.5px; display:block; margin-top:2px; }
 
         /* ── 篩選面板 ── */
         .filter-panel { max-width:1000px; margin:0 auto 16px; background:rgba(255,255,255,0.2); padding:22px 25px; border-radius:0 0 20px 20px; border:1px solid rgba(0,0,0,0.05); border-top:none; display:none; flex-direction:column; gap:16px; align-items:center; }
@@ -221,13 +220,8 @@
 
 <!-- 篩選切換按鈕 -->
 <div class="filter-toggle-wrap">
-    <button class="filter-toggle-btn" id="ftbtn-detail" onclick="switchFilter('detail')">
-        依據空間及大小選擇
-    </button>
-    <button class="filter-toggle-btn" id="ftbtn-lazy" onclick="switchFilter('lazy')">
-        我想懶懶的找植物 🌱
-        <span class="ft-sub">依據小樣兒精選 HashTag 快速挑選</span>
-    </button>
+    <button class="filter-toggle-btn" id="ftbtn-detail" onclick="switchFilter('detail')">依據空間及大小選擇</button>
+    <button class="filter-toggle-btn" id="ftbtn-lazy" onclick="switchFilter('lazy')">我想懶懶的找植物 🌱<br><span class="ft-sub">依據小樣兒精選 HashTag 快速挑選</span></button>
 </div>
 
 <!-- 篩選區一：詳細篩選 -->
@@ -423,6 +417,7 @@ async function loadPlants() {
             shufflePlants(plantsData);
             renderCards();
             renderModals();
+            hideAllCards();
             checkUrlParam();
         } else showLoadError();
     } catch { showLoadError(); }
@@ -536,45 +531,94 @@ function selectVariant(plantId, variantId) {
 }
 
 // ── 篩選 ──
-function toggleLazyFilter() {
-    document.getElementById('lazy-filter-section').classList.toggle('open');
+let activeFilter = null;
+
+function hideAllCards() {
+    document.querySelectorAll('.plant-card').forEach(c=>c.style.display='none');
 }
+
+function switchFilter(type) {
+    if (activeFilter === type) {
+        activeFilter = null;
+        document.getElementById('ftbtn-detail').classList.remove('active');
+        document.getElementById('ftbtn-lazy').classList.remove('active');
+        document.getElementById('filter-panel-detail').classList.remove('active');
+        document.getElementById('filter-panel-lazy').classList.remove('active');
+        resetDetailFilters();
+        resetLazyFilters();
+        hideAllCards();
+        return;
+    }
+    ['detail','lazy'].forEach(t=>{
+        document.getElementById(`ftbtn-${t}`).classList.remove('active');
+        document.getElementById(`filter-panel-${t}`).classList.remove('active');
+    });
+    resetDetailFilters();
+    resetLazyFilters();
+    activeFilter = type;
+    document.getElementById(`ftbtn-${type}`).classList.add('active');
+    document.getElementById(`filter-panel-${type}`).classList.add('active');
+    applyFilters();
+}
+
+function resetDetailFilters() {
+    ['fs-indoor','fs-outdoor','fs-full','fs-half','fs-ind','fs-bright'].forEach(id=>{
+        const el=document.getElementById(id); if(el) el.checked=true;
+    });
+    document.querySelectorAll('#height-checkboxes input').forEach(cb=>cb.checked=true);
+    const kw=document.getElementById('keyword-input'); if(kw) kw.value='';
+}
+
+function resetLazyFilters() {
+    selectedTagFilters=[];
+    document.querySelectorAll('.tag-pill').forEach(b=>b.classList.remove('active'));
+}
+
 function toggleTagFilter(btn) {
     btn.classList.toggle('active');
     selectedTagFilters=Array.from(document.querySelectorAll('.tag-pill.active')).map(b=>b.dataset.tag);
     applyFilters();
 }
+
 function setStatusFilter(val,btn) {
     currentStatusFilter=val;
     document.querySelectorAll('.status-pill').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     applyFilters();
 }
+
 function applyFilters() {
-    const spaceChecked=[];
-    if(document.getElementById('fs-indoor')?.checked)  spaceChecked.push('室內');
-    if(document.getElementById('fs-outdoor')?.checked) spaceChecked.push('室外');
-    const sunChecked=[];
-    if(document.getElementById('fs-full')?.checked)   sunChecked.push('全日照');
-    if(document.getElementById('fs-half')?.checked)   sunChecked.push('半日照');
-    if(document.getElementById('fs-ind')?.checked)    sunChecked.push('間接光');
-    if(document.getElementById('fs-bright')?.checked) sunChecked.push('明亮處');
-    const checkedH=Array.from(document.querySelectorAll('#height-checkboxes input:checked')).map(cb=>{
-        const r=cb.value.split('-');return{min:parseInt(r[0]),max:parseInt(r[1])};
-    });
-    const keyword=(document.getElementById('keyword-input')?.value||'').trim().toLowerCase();
+    if (!activeFilter) { hideAllCards(); return; }
 
     document.querySelectorAll('.plant-card').forEach(card=>{
         const p=plantsData.find(pl=>pl.plant_id===card.dataset.id);
         if(!p){card.style.display='none';return;}
-        const matchSpace  = spaceChecked.length===0||spaceChecked.some(s=>p.space.includes(s));
-        const matchSun    = sunChecked.length===0||sunChecked.some(s=>p.sun.includes(s));
-        const matchH      = checkedH.length===0||p.variants.some(v=>v.status!=='hidden'&&checkedH.some(r=>v.height_min<=r.max&&v.height_max>=r.min));
-        const visV        = p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
-        const matchStatus = currentStatusFilter==='instock'?visV.some(v=>v.status==='instock'):visV.some(v=>v.status===currentStatusFilter);
-        const matchTag    = selectedTagFilters.length===0||selectedTagFilters.some(t=>(p.tags||[]).includes(t));
-        const matchKw     = !keyword||p.name.toLowerCase().includes(keyword);
-        card.style.display=(matchSpace&&matchSun&&matchH&&matchStatus&&matchTag&&matchKw)?'block':'none';
+        const visV=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
+
+        if (activeFilter==='detail') {
+            const spaceChecked=[];
+            if(document.getElementById('fs-indoor')?.checked)  spaceChecked.push('室內');
+            if(document.getElementById('fs-outdoor')?.checked) spaceChecked.push('室外');
+            const sunChecked=[];
+            if(document.getElementById('fs-full')?.checked)   sunChecked.push('全日照');
+            if(document.getElementById('fs-half')?.checked)   sunChecked.push('半日照');
+            if(document.getElementById('fs-ind')?.checked)    sunChecked.push('間接光');
+            if(document.getElementById('fs-bright')?.checked) sunChecked.push('明亮處');
+            const checkedH=Array.from(document.querySelectorAll('#height-checkboxes input:checked')).map(cb=>{
+                const r=cb.value.split('-');return{min:parseInt(r[0]),max:parseInt(r[1])};
+            });
+            const keyword=(document.getElementById('keyword-input')?.value||'').trim().toLowerCase();
+            const matchSpace  = spaceChecked.length===0||spaceChecked.some(s=>p.space.includes(s));
+            const matchSun    = sunChecked.length===0||sunChecked.some(s=>p.sun.includes(s));
+            const matchH      = checkedH.length===0||p.variants.some(v=>v.status!=='hidden'&&checkedH.some(r=>v.height_min<=r.max&&v.height_max>=r.min));
+            const matchStatus = visV.some(v=>v.status==='instock'||v.status==='preorder');
+            const matchKw     = !keyword||p.name.toLowerCase().includes(keyword);
+            card.style.display=(matchSpace&&matchSun&&matchH&&matchStatus&&matchKw)?'block':'none';
+        } else if (activeFilter==='lazy') {
+            if(selectedTagFilters.length===0){card.style.display='none';return;}
+            const matchTag=selectedTagFilters.some(t=>(p.tags||[]).includes(t));
+            card.style.display=matchTag?'block':'none';
+        }
     });
 }
 
