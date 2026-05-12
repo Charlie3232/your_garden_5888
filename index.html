@@ -405,10 +405,11 @@ let addonActive = { cement:false, clear:false, roller:false };
 // ── 狀態持久化（sessionStorage）──
 function saveState() {
     try {
-        sessionStorage.setItem('yg_cart', JSON.stringify(cart));
-        sessionStorage.setItem('yg_addon_active', JSON.stringify(addonActive));
-        sessionStorage.setItem('yg_addon_qtys', JSON.stringify(addonQtys));
-        sessionStorage.setItem('yg_region', JSON.stringify(selectedRegion));
+        if (typeof sessionStorage === 'undefined') return;
+        sessionStorage.setItem('yg_cart', JSON.stringify(cart||{}));
+        sessionStorage.setItem('yg_addon_active', JSON.stringify(addonActive||{}));
+        sessionStorage.setItem('yg_addon_qtys', JSON.stringify(addonQtys||{}));
+        sessionStorage.setItem('yg_region', JSON.stringify(selectedRegion||null));
         sessionStorage.setItem('yg_filter', activeFilter||'');
         sessionStorage.setItem('yg_tag', selectedTagFilter||'');
     } catch(e){}
@@ -416,14 +417,14 @@ function saveState() {
 function restoreState() {
     try {
         const c = sessionStorage.getItem('yg_cart');
-        if (c) cart = JSON.parse(c);
+        if (c) { const parsed = JSON.parse(c); if(parsed && typeof parsed==='object') cart = parsed; }
         const aa = sessionStorage.getItem('yg_addon_active');
-        if (aa) addonActive = JSON.parse(aa);
+        if (aa) { const parsed = JSON.parse(aa); if(parsed && typeof parsed==='object') addonActive = parsed; }
         const aq = sessionStorage.getItem('yg_addon_qtys');
-        if (aq) addonQtys = JSON.parse(aq);
+        if (aq) { const parsed = JSON.parse(aq); if(parsed && typeof parsed==='object') addonQtys = parsed; }
         const r = sessionStorage.getItem('yg_region');
-        if (r) selectedRegion = JSON.parse(r);
-    } catch(e){}
+        if (r) { const parsed = JSON.parse(r); if(parsed && typeof parsed==='object') selectedRegion = parsed; }
+    } catch(e){ console.error('restoreState',e); }
 }
 function restoreUI() {
     // 購物車
