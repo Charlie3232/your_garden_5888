@@ -454,6 +454,9 @@ function restoreUI() {
             });
         }
         applyFilters();
+    } else {
+        // 沒有儲存的篩選狀態 → 隱藏所有植物
+        hideAllCards();
     }
 }
 
@@ -594,6 +597,7 @@ function switchFilter(type) {
         document.getElementById('filter-panel-lazy').classList.remove('active');
         resetDetailFilters();
         resetLazyFilters();
+        saveState();
         hideAllCards();
         return;
     }
@@ -605,6 +609,7 @@ function switchFilter(type) {
     document.getElementById('ftbtn-lazy').classList.toggle('active',   type==='lazy');
     document.getElementById('filter-panel-detail').classList.toggle('active', type==='detail');
     document.getElementById('filter-panel-lazy').classList.toggle('active',   type==='lazy');
+    saveState();
     applyFilters();
 }
 
@@ -631,6 +636,7 @@ function toggleTagFilter(btn) {
     } else {
         selectedTagFilter = null;
     }
+    saveState();
     applyFilters();
 }
 
