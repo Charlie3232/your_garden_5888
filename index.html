@@ -26,25 +26,23 @@
         .unlimited { display:block; text-align:center; font-size:0.75rem; color:#555; margin-top:5px; font-weight:700; border-top:1px dashed rgba(0,0,0,0.1); padding-top:5px; }
 
         /* ── 篩選切換按鈕 ── */
-        .filter-toggle-wrap { max-width:1000px; margin:0 auto 0; display:flex; flex-direction:column; gap:10px; padding:0 20px; }
+        .filter-toggle-wrap { max-width:1000px; margin:0 auto 0; display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 20px; }
         .filter-toggle-btn {
-            width:100%; padding:16px 24px; border-radius:16px; border:1.5px solid rgba(0,0,0,0.1);
-            background:rgba(255,255,255,0.35); font-family:inherit; font-size:0.9rem;
+            width:100%; padding:16px 20px; border-radius:16px; border:1.5px solid rgba(0,0,0,0.1);
+            background:rgba(255,255,255,0.35); font-family:inherit; font-size:0.88rem;
             font-weight:700; cursor:pointer; transition:all 0.2s; text-align:center;
-            color:var(--text-main); line-height:1.6; letter-spacing:0.5px;
+            color:var(--text-main); line-height:1.5; letter-spacing:0.5px;
+            display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
         }
         .filter-toggle-btn:hover { background:rgba(255,255,255,0.6); border-color:var(--accent-green); }
         .filter-toggle-btn.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
         .filter-toggle-btn.active .ft-sub { color:rgba(255,255,255,0.55); }
-        .ft-sub { font-size:0.72rem; font-weight:400; color:#aaa; letter-spacing:0.5px; display:block; margin-top:2px; }
+        .ft-sub { font-size:0.68rem; font-weight:400; color:#aaa; letter-spacing:0.5px; }
 
         /* ── 篩選面板 ── */
         .filter-panel { max-width:1000px; margin:0 auto 16px; background:rgba(255,255,255,0.2); padding:22px 25px; border-radius:0 0 20px 20px; border:1px solid rgba(0,0,0,0.05); border-top:none; display:none; flex-direction:column; gap:16px; align-items:center; }
         .filter-panel.active { display:flex; }
 
-        /* ── 篩選區一 ── */
-        .filter-section { max-width:1000px; margin:0 auto 10px; background:rgba(255,255,255,0.2); padding:22px 25px; border-radius:20px; border:1px solid rgba(0,0,0,0.05); display:flex; flex-direction:column; gap:16px; align-items:center; }
-        .filter-section-title { font-size:0.78rem; font-weight:700; color:var(--accent-green); letter-spacing:2px; align-self:flex-start; }
         .filter-row { display:flex; flex-wrap:wrap; gap:20px; justify-content:center; width:100%; }
         .filter-group { display:flex; flex-direction:column; gap:8px; align-items:center; }
         .filter-group label.group-title { font-size:0.82rem; font-weight:700; color:var(--accent-green); letter-spacing:1px; }
@@ -56,24 +54,13 @@
         .status-pill { padding:6px 16px; border-radius:20px; border:1.5px solid rgba(0,0,0,0.15); background:white; font-family:inherit; font-size:0.78rem; cursor:pointer; font-weight:700; transition:all 0.2s; }
         .status-pill.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
 
-        /* 關鍵字搜尋 */
         .keyword-wrap { position:relative; width:100%; max-width:400px; }
         .keyword-input { width:100%; padding:10px 16px 10px 38px; border-radius:30px; border:1px solid rgba(0,0,0,0.12); background:rgba(255,255,255,0.7); font-family:inherit; font-size:0.85rem; outline:none; transition:border-color 0.2s; }
         .keyword-input:focus { border-color:var(--accent-green); }
         .keyword-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#aaa; pointer-events:none; }
 
-        /* ── 篩選區二（懶懶的篩選）── */
-        .lazy-filter-section { max-width:1000px; margin:0 auto 16px; border-radius:20px; border:1px solid rgba(0,0,0,0.05); overflow:hidden; }
-        .lazy-filter-header { background:rgba(255,255,255,0.25); padding:14px 22px; cursor:pointer; display:flex; align-items:center; justify-content:space-between; user-select:none; transition:background 0.2s; }
-        .lazy-filter-header:hover { background:rgba(255,255,255,0.4); }
-        .lazy-filter-title { font-size:0.82rem; font-weight:700; color:var(--accent-green); letter-spacing:1px; }
-        .lazy-filter-hint  { font-size:0.75rem; color:#aaa; }
-        .lazy-expand-icon  { font-size:0.75rem; color:#aaa; transition:transform 0.25s; }
-        .lazy-filter-section.open .lazy-expand-icon { transform:rotate(180deg); }
-        .lazy-filter-body { display:none; background:rgba(255,255,255,0.15); padding:16px 22px 20px; }
-        .lazy-filter-section.open .lazy-filter-body { display:block; }
-        .lazy-prompt { font-size:0.82rem; color:var(--text-sub); margin-bottom:12px; letter-spacing:0.5px; }
-        .tag-pills { display:flex; flex-wrap:wrap; gap:8px; }
+        /* HashTag 篩選 */
+        .tag-pills { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
         .tag-pill { padding:8px 18px; border-radius:20px; border:1.5px solid rgba(0,0,0,0.12); background:white; font-family:inherit; font-size:0.82rem; cursor:pointer; font-weight:700; transition:all 0.18s; letter-spacing:0.5px; }
         .tag-pill:hover { border-color:var(--accent-green); }
         .tag-pill.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
@@ -101,7 +88,6 @@
         .note-box { font-size:0.85rem; color:#555; background:rgba(255,255,255,0.3); padding:18px; border-radius:15px; border:1px dashed rgba(0,0,0,0.1); line-height:1.8; }
         .close-btn { position:absolute; top:15px; right:20px; font-size:1.4rem; cursor:pointer; color:var(--dark-pot); background:rgba(216,216,216,0.85); border:none; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:20; backdrop-filter:blur(4px); }
 
-        /* 尺寸選擇 */
         .variant-selector { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
         .variant-btn { padding:7px 13px; border-radius:10px; border:1.5px solid rgba(0,0,0,0.15); background:white; font-family:inherit; font-size:0.75rem; font-weight:700; cursor:pointer; transition:all 0.18s; white-space:nowrap; }
         .variant-btn:hover:not(.v-soldout) { border-color:var(--accent-green); }
@@ -135,7 +121,6 @@
         .cart-item-del { background:none; border:none; color:#ccc; cursor:pointer; font-size:1rem; padding:0 4px; }
         .cart-item-del:hover { color:#e00; }
 
-        /* 底盤加購 */
         .addon-section { margin:20px 0 10px; }
         .addon-title { font-size:0.78rem; font-weight:700; color:var(--accent-green); letter-spacing:1px; margin-bottom:12px; }
         .addon-hint  { font-size:0.72rem; color:#999; margin-bottom:10px; }
@@ -191,7 +176,6 @@
             .detail-left-gallery{flex:0 0 auto;width:100%;padding:15px;}
             .zoom-container{height:140px;}
             .detail-right{padding:25px;max-height:none;}
-            .addon-cards{grid-template-columns:1fr 1fr 1fr;}
         }
     </style>
 </head>
@@ -218,13 +202,18 @@
     </div>
 </nav>
 
-<!-- 篩選切換按鈕 -->
+<!-- 篩選切換按鈕（左右並排） -->
 <div class="filter-toggle-wrap">
-    <button class="filter-toggle-btn" id="ftbtn-detail" onclick="switchFilter('detail')">依據空間及大小選擇</button>
-    <button class="filter-toggle-btn" id="ftbtn-lazy" onclick="switchFilter('lazy')">我想懶懶的找植物 🌱<br><span class="ft-sub">依據小樣兒精選 HashTag 快速挑選</span></button>
+    <button class="filter-toggle-btn" id="ftbtn-detail" onclick="switchFilter('detail')">
+        依據空間及大小選擇
+    </button>
+    <button class="filter-toggle-btn" id="ftbtn-lazy" onclick="switchFilter('lazy')">
+        我想懶懶的找植物 🌱
+        <span class="ft-sub">依據小樣兒精選 HashTag 快速挑選</span>
+    </button>
 </div>
 
-<!-- 篩選區一：詳細篩選 -->
+<!-- 篩選面板一：詳細篩選 -->
 <div class="filter-panel" id="filter-panel-detail">
     <div class="filter-row">
         <div class="filter-group">
@@ -268,18 +257,18 @@
     </div>
 </div>
 
-<!-- 篩選區二：懶懶的篩選 -->
+<!-- 篩選面板二：HashTag 單選 -->
 <div class="filter-panel" id="filter-panel-lazy">
     <div class="tag-pills">
         <button class="tag-pill" data-tag="#寵物友善"  onclick="toggleTagFilter(this)">#寵物友善</button>
-        <button class="tag-pill" data-tag="#室內無陽光"  onclick="toggleTagFilter(this)">#室內無光</button>
+        <button class="tag-pill" data-tag="#室內無光"  onclick="toggleTagFilter(this)">#室內無光</button>
         <button class="tag-pill" data-tag="#西曬"      onclick="toggleTagFilter(this)">#西曬</button>
         <button class="tag-pill" data-tag="#招財"      onclick="toggleTagFilter(this)">#招財</button>
         <button class="tag-pill" data-tag="#辦公室"    onclick="toggleTagFilter(this)">#辦公室</button>
         <button class="tag-pill" data-tag="#送禮推薦"  onclick="toggleTagFilter(this)">#送禮推薦</button>
         <button class="tag-pill" data-tag="#室外陽台"  onclick="toggleTagFilter(this)">#室外陽台</button>
         <button class="tag-pill" data-tag="#室內窗邊"  onclick="toggleTagFilter(this)">#室內窗邊</button>
-        <button class="tag-pill" data-tag="#室內窗邊"  onclick="toggleTagFilter(this)">#客廳擺飾</button>
+        <button class="tag-pill" data-tag="#客廳擺飾"  onclick="toggleTagFilter(this)">#客廳擺飾</button>
     </div>
 </div>
 
@@ -304,7 +293,6 @@
         </div>
         <div id="cart-list"></div>
 
-        <!-- 底盤加購 -->
         <div class="addon-section">
             <p class="addon-title">底盤加購</p>
             <p class="addon-hint">店長會幫您配適當大小 🌿</p>
@@ -333,34 +321,21 @@
                 <div style="display:flex;align-items:center;background:white;border-radius:16px;padding:3px 12px;border:1px solid #ccc;gap:6px;">
                     <button onclick="changeAddonQty(-1)" style="border:none;background:none;cursor:pointer;font-size:1rem;">-</button>
                     <span id="addon-qty-val" style="width:24px;text-align:center;">1</span>
-                    <button onclick="changeAddonQty(1)"  style="border:none;background:none;cursor:pointer;font-size:1rem;">+</button>
+                    <button onclick="changeAddonQty(1)" style="border:none;background:none;cursor:pointer;font-size:1rem;">+</button>
                 </div>
                 <button onclick="clearAddon()" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:0.8rem;">取消</button>
             </div>
         </div>
 
-        <!-- 地區 -->
         <div class="region-section">
             <p class="region-label">選擇配送地區</p>
             <div class="region-grid">
-                <button class="region-btn" data-fee="180" data-label="北部" onclick="selectRegion(this)">
-                    北部<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">基隆/台北/新北/桃園/新竹</span>
-                </button>
-                <button class="region-btn" data-fee="200" data-label="中部" onclick="selectRegion(this)">
-                    中部<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">苗栗/台中/彰化</span>
-                </button>
-                <button class="region-btn" data-fee="230" data-label="南部" onclick="selectRegion(this)">
-                    南部<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">雲林/嘉義/台南/高雄</span>
-                </button>
-                <button class="region-btn" data-fee="5000" data-label="南投/宜蘭/屏東" onclick="selectRegion(this)">
-                    南投/宜蘭/屏東<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">滿5000免運出貨</span>
-                </button>
-                <button class="region-btn unavailable" data-fee="-1" data-label="台東/花蓮" onclick="selectRegion(this)">
-                    台東/花蓮<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">目前暫無配送</span>
-                </button>
-                <button class="region-btn" data-fee="0" data-label="自取" data-type="pickup" onclick="selectRegion(this)">
-                    自取 免運<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">不限金額</span>
-                </button>
+                <button class="region-btn" data-fee="180" data-label="北部" onclick="selectRegion(this)">北部<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">基隆/台北/新北/桃園/新竹</span></button>
+                <button class="region-btn" data-fee="200" data-label="中部" onclick="selectRegion(this)">中部<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">苗栗/台中/彰化</span></button>
+                <button class="region-btn" data-fee="230" data-label="南部" onclick="selectRegion(this)">南部<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">雲林/嘉義/台南/高雄</span></button>
+                <button class="region-btn" data-fee="5000" data-label="南投/宜蘭/屏東" onclick="selectRegion(this)">南投/宜蘭/屏東<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">滿5000免運出貨</span></button>
+                <button class="region-btn unavailable" data-fee="-1" data-label="台東/花蓮" onclick="selectRegion(this)">台東/花蓮<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">目前暫無配送</span></button>
+                <button class="region-btn" data-fee="0" data-label="自取" data-type="pickup" onclick="selectRegion(this)">自取 免運<br><span style="font-size:0.68rem;font-weight:400;opacity:0.7;">不限金額</span></button>
             </div>
         </div>
 
@@ -375,7 +350,6 @@
     </div>
 </div>
 
-<!-- 複製訊息 -->
 <div id="copy-modal">
     <div class="copy-box">
         <h3>📋 複製訂購內容</h3>
@@ -393,22 +367,21 @@
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0V5JhplIEmayvz7Rbnx3MT7hcsNXXJZG8KfnjYp_wp_01eWwMxOrWFAmGWX29Hha-/exec';
 
-// ── 底盤資料（圖片連結請替換）──
 const ADDONS = {
-    cement: { name:'水泥底盤', price:149, img:'https://img2.pixhost.to/images/7834/725158266_s__9306426_0.jpg' },
-    clear:  { name:'透明底盤', price:20,  img:'https://img2.pixhost.to/images/7834/725158406_s__9306427_0.jpg'  },
-    roller: { name:'滾輪底盤', price:250, img:'https://img2.pixhost.to/images/7834/725158447_s__9306428_0.jpg' },
+    cement: { name:'水泥底盤', price:149 },
+    clear:  { name:'透明底盤', price:20  },
+    roller: { name:'滾輪底盤', price:250 },
 };
-// ⬆️ 上傳圖片到 Imgur 後，把上面三個連結替換掉
 
 let plantsData = [];
 let cart = {};
 let currentStatusFilter = 'instock';
-let selectedTagFilters  = [];
+let selectedTagFilter   = null;   // 單選，null 表示未選
 let selectedVariant     = {};
 let selectedRegion      = null;
 let selectedAddon       = null;
 let addonQty            = 1;
+let activeFilter        = null;   // 'detail' | 'lazy' | null
 
 // ── 載入 ──
 async function loadPlants() {
@@ -441,8 +414,7 @@ function renderCards() {
         const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
         return vis.length>0&&vis.every(v=>v.status==='preorder');
     });
-    const ordered = [...instock,...preorder];
-    ordered.forEach(p=>{
+    [...instock,...preorder].forEach(p=>{
         const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
         const isPreorder=vis.every(v=>v.status==='preorder');
         container.innerHTML+=`
@@ -534,14 +506,13 @@ function selectVariant(plantId, variantId) {
 }
 
 // ── 篩選 ──
-let activeFilter = null;
-
 function hideAllCards() {
     document.querySelectorAll('.plant-card').forEach(c=>c.style.display='none');
 }
 
 function switchFilter(type) {
     if (activeFilter === type) {
+        // 再點一次 → 收合，隱藏所有植物
         activeFilter = null;
         document.getElementById('ftbtn-detail').classList.remove('active');
         document.getElementById('ftbtn-lazy').classList.remove('active');
@@ -552,15 +523,14 @@ function switchFilter(type) {
         hideAllCards();
         return;
     }
-    ['detail','lazy'].forEach(t=>{
-        document.getElementById(`ftbtn-${t}`).classList.remove('active');
-        document.getElementById(`filter-panel-${t}`).classList.remove('active');
-    });
+    // 切換到另一個
     resetDetailFilters();
     resetLazyFilters();
     activeFilter = type;
-    document.getElementById(`ftbtn-${type}`).classList.add('active');
-    document.getElementById(`filter-panel-${type}`).classList.add('active');
+    document.getElementById('ftbtn-detail').classList.toggle('active', type==='detail');
+    document.getElementById('ftbtn-lazy').classList.toggle('active',   type==='lazy');
+    document.getElementById('filter-panel-detail').classList.toggle('active', type==='detail');
+    document.getElementById('filter-panel-lazy').classList.toggle('active',   type==='lazy');
     applyFilters();
 }
 
@@ -573,13 +543,20 @@ function resetDetailFilters() {
 }
 
 function resetLazyFilters() {
-    selectedTagFilters=[];
+    selectedTagFilter=null;
     document.querySelectorAll('.tag-pill').forEach(b=>b.classList.remove('active'));
 }
 
+// ── HashTag 單選 ──
 function toggleTagFilter(btn) {
-    btn.classList.toggle('active');
-    selectedTagFilters=Array.from(document.querySelectorAll('.tag-pill.active')).map(b=>b.dataset.tag);
+    const isActive = btn.classList.contains('active');
+    document.querySelectorAll('.tag-pill').forEach(b=>b.classList.remove('active'));
+    if (!isActive) {
+        btn.classList.add('active');
+        selectedTagFilter = btn.dataset.tag;
+    } else {
+        selectedTagFilter = null;
+    }
     applyFilters();
 }
 
@@ -618,9 +595,8 @@ function applyFilters() {
             const matchKw     = !keyword||p.name.toLowerCase().includes(keyword);
             card.style.display=(matchSpace&&matchSun&&matchH&&matchStatus&&matchKw)?'block':'none';
         } else if (activeFilter==='lazy') {
-            if(selectedTagFilters.length===0){card.style.display='none';return;}
-            const matchTag=selectedTagFilters.some(t=>(p.tags||[]).includes(t));
-            card.style.display=matchTag?'block':'none';
+            if(!selectedTagFilter){card.style.display='none';return;}
+            card.style.display=(p.tags||[]).includes(selectedTagFilter)?'block':'none';
         }
     });
 }
@@ -639,16 +615,15 @@ function closeProduct(id) {
 window.addEventListener('popstate', e=>{
     document.querySelectorAll('.detail-overlay').forEach(o=>o.style.display='none');
     document.body.style.overflow='auto';
-    if(e.state?.modal) {
+    if(e.state?.modal){
         const el=document.getElementById(e.state.modal+'Overlay');
         if(el){el.style.display='block';document.body.style.overflow='hidden';}
     }
 });
-
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').style.display='flex';}
 function closeLightbox(){document.getElementById('lightbox').style.display='none';}
 function shareProduct(id){navigator.clipboard.writeText(`${location.origin}${location.pathname}?id=${id}`).then(()=>showToast('連結已複製 🔗'));}
-function checkUrlParam(){const id=new URLSearchParams(location.search).get('id');if(id&&plantsData.find(p=>p.plant_id===id)) openProduct(id);}
+function checkUrlParam(){const id=new URLSearchParams(location.search).get('id');if(id&&plantsData.find(p=>p.plant_id===id))openProduct(id);}
 
 // ── 購物車 ──
 function changeQty(pid,d){const el=document.getElementById(`qty-${pid}`);if(el)el.innerText=Math.max(1,parseInt(el.innerText)+d);}
@@ -684,7 +659,7 @@ function renderCartList(){
                 <div style="display:flex;align-items:center;background:white;border-radius:16px;padding:3px 10px;border:1px solid #ccc;gap:4px;">
                     <button onclick="changeCartQty('${sk}',-1)" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#555;padding:0 4px;">-</button>
                     <span style="width:22px;text-align:center;font-size:0.88rem;">${item.qty}</span>
-                    <button onclick="changeCartQty('${sk}',1)"  style="border:none;background:none;cursor:pointer;font-size:1rem;color:#555;padding:0 4px;">+</button>
+                    <button onclick="changeCartQty('${sk}',1)" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#555;padding:0 4px;">+</button>
                 </div>
                 <span class="cart-item-price">NT$ ${item.price*item.qty}</span>
                 <button class="cart-item-del" onclick="removeFromCart('${sk}')">✕</button>
@@ -692,15 +667,13 @@ function renderCartList(){
         </div>`;
     });
 }
-
 function removeFromCart(key){delete cart[key];updateCartCount();renderCartList();updatePriceSummary();}
 function changeCartQty(key,delta){if(!cart[key])return;cart[key].qty=Math.max(1,cart[key].qty+delta);updateCartCount();renderCartList();updatePriceSummary();}
 
 // ── 底盤加購 ──
 function selectAddon(type){
     if(selectedAddon===type){clearAddon();return;}
-    selectedAddon=type;
-    addonQty=1;
+    selectedAddon=type; addonQty=1;
     document.querySelectorAll('.addon-card').forEach(c=>c.classList.remove('selected'));
     document.getElementById(`addon-${type}`).classList.add('selected');
     document.getElementById('addon-qty-row').style.display='flex';
@@ -737,13 +710,10 @@ function updatePriceSummary(){
     const addonCost=selectedAddon?ADDONS[selectedAddon].price*addonQty:0;
     document.getElementById('sub-total').innerText=`NT$ ${sub}`;
     document.getElementById('addon-total-display').innerText=selectedAddon?`NT$ ${addonCost}`:'無';
-
     const noticeBox=document.getElementById('ship-notice-box');
-    const sendBtn  =document.getElementById('send-order-btn');
+    const sendBtn=document.getElementById('send-order-btn');
     let shipFee=0,shipText='請選擇地區',totalText='－',canSend=false;
-
     if(!selectedRegion){noticeBox.innerHTML='';sendBtn.disabled=true;}
-    else if(selectedRegion.type==='unavailable'){shipText='無法配送';totalText='－';noticeBox.innerHTML=`<div class="ship-notice none">目前尚在努力，暫無配送至台東/花蓮</div>`;sendBtn.disabled=true;}
     else if(selectedRegion.type==='pickup'){shipFee=0;shipText='免運（自取）';totalText=`NT$ ${sub+addonCost}`;noticeBox.innerHTML=`<div class="ship-notice ok">✅ 自取免運，不限金額</div>`;canSend=Object.keys(cart).length>0;}
     else if(selectedRegion.type==='conditional'){
         if(sub>=5000){shipFee=0;shipText='免運';totalText=`NT$ ${sub+addonCost}`;noticeBox.innerHTML=`<div class="ship-notice ok">✅ 已達5000元，免運費出貨</div>`;canSend=true;}
@@ -753,7 +723,6 @@ function updatePriceSummary(){
         else{shipFee=selectedRegion.fee;shipText=`NT$ ${shipFee}`;totalText=`NT$ ${sub+addonCost+shipFee}`;noticeBox.innerHTML=`<div class="ship-notice none" style="color:#888;">滿 NT$2,000 免運費，目前差 NT$${2000-sub}</div>`;}
         canSend=Object.keys(cart).length>0;
     }
-
     document.getElementById('ship-fee-display').innerText=shipText;
     document.getElementById('final-total').innerText=totalText;
     sendBtn.disabled=!canSend||Object.keys(cart).length===0;
@@ -765,9 +734,7 @@ function openCopyModal(){
     Object.values(cart).forEach(item=>{
         lines.push(`${item.plantName}｜${item.potLabel} x${item.qty}  NT$${item.price*item.qty}`);
     });
-    if(selectedAddon){
-        lines.push(`底盤加購：${ADDONS[selectedAddon].name} x${addonQty}  NT$${ADDONS[selectedAddon].price*addonQty}`);
-    }
+    if(selectedAddon) lines.push(`底盤加購：${ADDONS[selectedAddon].name} x${addonQty}  NT$${ADDONS[selectedAddon].price*addonQty}`);
     if(selectedRegion){
         const sub=Object.values(cart).reduce((a,b)=>a+(b.price*b.qty),0);
         if(selectedRegion.type==='pickup') lines.push(`\n配送方式：自取（免運）`);
