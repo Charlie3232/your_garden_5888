@@ -35,10 +35,11 @@
             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
         }
         .filter-toggle-btn span { white-space:nowrap; display:block; width:100%; text-align:center; }
+        .filter-toggle-btn .ft-sub { white-space:normal; }
         .filter-toggle-btn:hover { background:rgba(255,255,255,0.6); border-color:var(--accent-green); }
         .filter-toggle-btn.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
         .filter-toggle-btn.active .ft-sub { color:rgba(255,255,255,0.55); }
-        .ft-sub { font-size:0.68rem; font-weight:400; color:#aaa; letter-spacing:0.5px; }
+        .ft-sub { font-size:0.68rem; font-weight:400; color:#aaa; letter-spacing:0.5px; white-space:normal; line-height:1.5; }
 
         /* ── 篩選面板 ── */
         .filter-panel { max-width:1000px; margin:0 auto 16px; background:rgba(255,255,255,0.2); padding:22px 25px; border-radius:0 0 20px 20px; border:1px solid rgba(0,0,0,0.05); border-top:none; display:none; flex-direction:column; gap:16px; align-items:center; }
@@ -210,7 +211,7 @@
     </button>
     <button class="filter-toggle-btn" id="ftbtn-lazy" onclick="switchFilter('lazy')">
         <span>我想懶懶的找植物 🌱</span>
-        <span class="ft-sub">依據小樣兒精選 HashTag 快速挑選</span>
+        <span class="ft-sub">依據小樣兒精選 HashTag<br>快速挑選</span>
     </button>
 </div>
 
