@@ -134,7 +134,12 @@
         .addon-card-name  { font-size:0.72rem; font-weight:700; line-height:1.4; }
         .addon-card-price { font-size:0.7rem; color:var(--accent-green); font-weight:700; margin-top:3px; }
         .addon-card-note  { font-size:0.62rem; color:#aaa; margin-top:3px; line-height:1.4; }
-        .addon-qty-row { display:flex; align-items:center; gap:10px; margin-top:10px; flex-wrap:wrap; }
+        .addon-qty-ctrl { display:flex; align-items:center; justify-content:center; gap:6px; margin-top:8px; background:#f5f5f5; border-radius:12px; padding:4px 8px; }
+        .addon-qty-ctrl span { width:20px; text-align:center; font-size:0.82rem; font-weight:700; }
+        .addon-q-btn { border:none; background:none; cursor:pointer; font-size:1rem; color:#555; padding:0 4px; }
+        .addon-toggle-btn { margin-top:8px; width:100%; padding:6px; border-radius:8px; border:1.5px solid rgba(0,0,0,0.12); background:white; font-family:inherit; font-size:0.72rem; font-weight:700; cursor:pointer; transition:all 0.15s; }
+        .addon-toggle-btn.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
+        .addon-card.selected { border-color:var(--dark-pot); background:rgba(18,18,18,0.03); }
 
         .region-section { margin:20px 0; }
         .region-label { font-size:0.78rem; font-weight:700; color:var(--accent-green); letter-spacing:1px; margin-bottom:10px; }
@@ -297,35 +302,44 @@
 
         <div class="addon-section">
             <p class="addon-title">底盤加購</p>
-            <p class="addon-hint">店長會幫您配適當大小 🌿</p>
+            <p class="addon-hint">店長會幫您配適當大小 🌿 可複選不同底盤</p>
             <div class="addon-cards">
-                <div class="addon-card" id="addon-cement" onclick="selectAddon('cement')">
+                <div class="addon-card" id="addon-cement">
                     <img src="https://img2.pixhost.to/images/7834/725158266_s__9306426_0.jpg" alt="水泥底盤" onerror="this.style.display='none'">
                     <div class="addon-card-name">水泥底盤</div>
                     <div class="addon-card-price">+NT$149</div>
                     <div class="addon-card-note">10*10水滴/12*12圓筒/14*14圓筒 適用</div>
+                    <div class="addon-qty-ctrl" id="addon-qty-cement" style="display:none;">
+                        <button onclick="changeAddonQty('cement',-1)" class="addon-q-btn">-</button>
+                        <span id="addon-val-cement">1</span>
+                        <button onclick="changeAddonQty('cement',1)"  class="addon-q-btn">+</button>
+                    </div>
+                    <button class="addon-toggle-btn" id="addon-tog-cement" onclick="toggleAddon('cement')">加購</button>
                 </div>
-                <div class="addon-card" id="addon-clear" onclick="selectAddon('clear')">
+                <div class="addon-card" id="addon-clear">
                     <img src="https://img2.pixhost.to/images/7834/725158406_s__9306427_0.jpg" alt="透明底盤" onerror="this.style.display='none'">
                     <div class="addon-card-name">透明底盤</div>
                     <div class="addon-card-price">+NT$20</div>
                     <div class="addon-card-note">店長配尺寸</div>
+                    <div class="addon-qty-ctrl" id="addon-qty-clear" style="display:none;">
+                        <button onclick="changeAddonQty('clear',-1)" class="addon-q-btn">-</button>
+                        <span id="addon-val-clear">1</span>
+                        <button onclick="changeAddonQty('clear',1)"  class="addon-q-btn">+</button>
+                    </div>
+                    <button class="addon-toggle-btn" id="addon-tog-clear" onclick="toggleAddon('clear')">加購</button>
                 </div>
-                <div class="addon-card" id="addon-roller" onclick="selectAddon('roller')">
+                <div class="addon-card" id="addon-roller">
                     <img src="https://img2.pixhost.to/images/7834/725158447_s__9306428_0.jpg" alt="滾輪底盤" onerror="this.style.display='none'">
                     <div class="addon-card-name">滾輪底盤</div>
                     <div class="addon-card-price">+NT$250</div>
                     <div class="addon-card-note">22cm以下盆不建議使用</div>
+                    <div class="addon-qty-ctrl" id="addon-qty-roller" style="display:none;">
+                        <button onclick="changeAddonQty('roller',-1)" class="addon-q-btn">-</button>
+                        <span id="addon-val-roller">1</span>
+                        <button onclick="changeAddonQty('roller',1)"  class="addon-q-btn">+</button>
+                    </div>
+                    <button class="addon-toggle-btn" id="addon-tog-roller" onclick="toggleAddon('roller')">加購</button>
                 </div>
-            </div>
-            <div class="addon-qty-row" id="addon-qty-row" style="display:none;">
-                <span style="font-size:0.82rem;color:#888;">數量：</span>
-                <div style="display:flex;align-items:center;background:white;border-radius:16px;padding:3px 12px;border:1px solid #ccc;gap:6px;">
-                    <button onclick="changeAddonQty(-1)" style="border:none;background:none;cursor:pointer;font-size:1rem;">-</button>
-                    <span id="addon-qty-val" style="width:24px;text-align:center;">1</span>
-                    <button onclick="changeAddonQty(1)" style="border:none;background:none;cursor:pointer;font-size:1rem;">+</button>
-                </div>
-                <button onclick="clearAddon()" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:0.8rem;">取消</button>
             </div>
         </div>
 
@@ -381,9 +395,67 @@ let currentStatusFilter = 'instock';
 let selectedTagFilter   = null;   // 單選，null 表示未選
 let selectedVariant     = {};
 let selectedRegion      = null;
-let selectedAddon       = null;
-let addonQty            = 1;
+// addon state managed per-type above
 let activeFilter        = null;   // 'detail' | 'lazy' | null
+
+// ── 狀態持久化（sessionStorage）──
+function saveState() {
+    try {
+        sessionStorage.setItem('yg_cart', JSON.stringify(cart));
+        sessionStorage.setItem('yg_addon_active', JSON.stringify(addonActive));
+        sessionStorage.setItem('yg_addon_qtys', JSON.stringify(addonQtys));
+        sessionStorage.setItem('yg_region', JSON.stringify(selectedRegion));
+        sessionStorage.setItem('yg_filter', activeFilter||'');
+        sessionStorage.setItem('yg_tag', selectedTagFilter||'');
+    } catch(e){}
+}
+function restoreState() {
+    try {
+        const c = sessionStorage.getItem('yg_cart');
+        if (c) cart = JSON.parse(c);
+        const aa = sessionStorage.getItem('yg_addon_active');
+        if (aa) addonActive = JSON.parse(aa);
+        const aq = sessionStorage.getItem('yg_addon_qtys');
+        if (aq) addonQtys = JSON.parse(aq);
+        const r = sessionStorage.getItem('yg_region');
+        if (r) selectedRegion = JSON.parse(r);
+    } catch(e){}
+}
+function restoreUI() {
+    // 購物車
+    updateCartCount();
+    // 底盤
+    ADDON_KEYS.forEach(type => {
+        if (addonActive[type]) {
+            document.getElementById(`addon-${type}`).classList.add('selected');
+            document.getElementById(`addon-qty-${type}`).style.display = 'flex';
+            document.getElementById(`addon-val-${type}`).innerText = addonQtys[type];
+            const tog = document.getElementById(`addon-tog-${type}`);
+            tog.classList.add('active'); tog.innerText = '取消';
+        }
+    });
+    // 地區
+    if (selectedRegion) {
+        document.querySelectorAll('.region-btn').forEach(btn => {
+            if (btn.dataset.label === selectedRegion.label) btn.classList.add('selected');
+        });
+    }
+    // 篩選
+    const savedFilter = sessionStorage.getItem('yg_filter');
+    const savedTag    = sessionStorage.getItem('yg_tag');
+    if (savedFilter) {
+        activeFilter = savedFilter;
+        document.getElementById(`ftbtn-${savedFilter}`)?.classList.add('active');
+        document.getElementById(`filter-panel-${savedFilter}`)?.classList.add('active');
+        if (savedFilter === 'lazy' && savedTag) {
+            selectedTagFilter = savedTag;
+            document.querySelectorAll('.tag-pill').forEach(b => {
+                if (b.dataset.tag === savedTag) b.classList.add('active');
+            });
+        }
+        applyFilters();
+    }
+}
 
 // ── 載入 ──
 async function loadPlants() {
@@ -395,7 +467,7 @@ async function loadPlants() {
             shufflePlants(plantsData);
             renderCards();
             renderModals();
-            hideAllCards();
+            restoreUI();
             checkUrlParam();
         } else showLoadError();
     } catch { showLoadError(); }
@@ -634,6 +706,7 @@ function addToCart(plantId,plantName){
     const qty=parseInt(document.getElementById(`qty-${plantId}`)?.innerText||1);
     const key=`${plantName}｜${v.pot_label}`;
     if(cart[key]) cart[key].qty+=qty; else cart[key]={price:v.price,qty,plantName,potLabel:v.pot_label};
+    saveState();
     const qe=document.getElementById(`qty-${plantId}`);if(qe)qe.innerText='1';
     updateCartCount(); showToast('已加入購物車試算 🌿');
 }
@@ -669,29 +742,40 @@ function renderCartList(){
         </div>`;
     });
 }
-function removeFromCart(key){delete cart[key];updateCartCount();renderCartList();updatePriceSummary();}
-function changeCartQty(key,delta){if(!cart[key])return;cart[key].qty=Math.max(1,cart[key].qty+delta);updateCartCount();renderCartList();updatePriceSummary();}
+function removeFromCart(key){delete cart[key];saveState();updateCartCount();renderCartList();updatePriceSummary();}
+function changeCartQty(key,delta){if(!cart[key])return;cart[key].qty=Math.max(1,cart[key].qty+delta);saveState();updateCartCount();renderCartList();updatePriceSummary();}
 
-// ── 底盤加購 ──
-function selectAddon(type){
-    if(selectedAddon===type){clearAddon();return;}
-    selectedAddon=type; addonQty=1;
-    document.querySelectorAll('.addon-card').forEach(c=>c.classList.remove('selected'));
-    document.getElementById(`addon-${type}`).classList.add('selected');
-    document.getElementById('addon-qty-row').style.display='flex';
-    document.getElementById('addon-qty-val').innerText=1;
+// ── 底盤加購（三種獨立）──
+const ADDON_KEYS = ['cement','clear','roller'];
+let addonQtys = { cement:1, clear:1, roller:1 };
+let addonActive = { cement:false, clear:false, roller:false };
+
+function toggleAddon(type) {
+    addonActive[type] = !addonActive[type];
+    if (!addonActive[type]) addonQtys[type] = 1;
+    const card   = document.getElementById(`addon-${type}`);
+    const qtyDiv = document.getElementById(`addon-qty-${type}`);
+    const togBtn = document.getElementById(`addon-tog-${type}`);
+    const valEl  = document.getElementById(`addon-val-${type}`);
+    card.classList.toggle('selected', addonActive[type]);
+    qtyDiv.style.display = addonActive[type] ? 'flex' : 'none';
+    togBtn.classList.toggle('active', addonActive[type]);
+    togBtn.innerText = addonActive[type] ? '取消' : '加購';
+    if (addonActive[type]) valEl.innerText = addonQtys[type];
+    saveState();
     updatePriceSummary();
 }
-function clearAddon(){
-    selectedAddon=null; addonQty=1;
-    document.querySelectorAll('.addon-card').forEach(c=>c.classList.remove('selected'));
-    document.getElementById('addon-qty-row').style.display='none';
+function changeAddonQty(type, d) {
+    addonQtys[type] = Math.max(1, addonQtys[type] + d);
+    document.getElementById(`addon-val-${type}`).innerText = addonQtys[type];
+    saveState();
     updatePriceSummary();
 }
-function changeAddonQty(d){
-    addonQty=Math.max(1,addonQty+d);
-    document.getElementById('addon-qty-val').innerText=addonQty;
-    updatePriceSummary();
+function getAddonCost() {
+    return ADDON_KEYS.reduce((sum, t) => addonActive[t] ? sum + ADDONS[t].price * addonQtys[t] : sum, 0);
+}
+function getAddonLines() {
+    return ADDON_KEYS.filter(t=>addonActive[t]).map(t=>`底盤加購：${ADDONS[t].name} x${addonQtys[t]}  NT$${ADDONS[t].price*addonQtys[t]}`);
 }
 
 // ── 地區 ──
@@ -704,6 +788,7 @@ function selectRegion(btn){
     if(fee===5000) selectedRegion={fee:5000,label:btn.dataset.label,type:'conditional'};
     else if(type==='pickup') selectedRegion={fee:0,label:'自取',type:'pickup'};
     else selectedRegion={fee,label:btn.dataset.label,type:'normal'};
+    saveState();
     updatePriceSummary();
 }
 
@@ -736,7 +821,7 @@ function openCopyModal(){
     Object.values(cart).forEach(item=>{
         lines.push(`${item.plantName}｜${item.potLabel} x${item.qty}  NT$${item.price*item.qty}`);
     });
-    if(selectedAddon) lines.push(`底盤加購：${ADDONS[selectedAddon].name} x${addonQty}  NT$${ADDONS[selectedAddon].price*addonQty}`);
+    getAddonLines().forEach(l=>lines.push(l));
     if(selectedRegion){
         const sub=Object.values(cart).reduce((a,b)=>a+(b.price*b.qty),0);
         if(selectedRegion.type==='pickup') lines.push(`\n配送方式：自取（免運）`);
@@ -764,6 +849,7 @@ function copyText(){
 function showToast(msg){const t=document.getElementById('toast-notice');t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 function shufflePlants(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}}
 
+restoreState();
 loadPlants();
 </script>
 </body>
