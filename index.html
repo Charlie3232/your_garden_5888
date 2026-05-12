@@ -801,9 +801,9 @@ function selectRegion(btn){
 
 function updatePriceSummary(){
     const sub=Object.values(cart).reduce((a,b)=>a+(b.price*b.qty),0);
-    const addonCost=selectedAddon?ADDONS[selectedAddon].price*addonQty:0;
+    const addonCost=getAddonCost();
     document.getElementById('sub-total').innerText=`NT$ ${sub}`;
-    document.getElementById('addon-total-display').innerText=selectedAddon?`NT$ ${addonCost}`:'無';
+    document.getElementById('addon-total-display').innerText=addonCost>0?`NT$ ${addonCost}`:'無';
     const noticeBox=document.getElementById('ship-notice-box');
     const sendBtn=document.getElementById('send-order-btn');
     let shipFee=0,shipText='請選擇地區',totalText='－',canSend=false;
