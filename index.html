@@ -510,7 +510,7 @@ function renderModals() {
     const box=document.getElementById('modal-container');
     box.innerHTML='';
     plantsData.forEach(p=>{
-        const vis=p.variants.filter(v=>v.status!=='hidden');
+        const vis=p.variants.filter(v=>v.status!=='hidden').sort((a,b)=>a.height_min-b.height_min);
         const def=vis.find(v=>v.status!=='soldout')||vis[0];
         selectedVariant[p.plant_id]=def;
         const variantBtns=vis.map(v=>{
