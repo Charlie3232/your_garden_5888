@@ -392,11 +392,15 @@ const ADDONS = {
 let plantsData = [];
 let cart = {};
 let currentStatusFilter = 'instock';
-let selectedTagFilter   = null;   // 單選，null 表示未選
+let selectedTagFilter   = null;
 let selectedVariant     = {};
 let selectedRegion      = null;
-// addon state managed per-type above
-let activeFilter        = null;   // 'detail' | 'lazy' | null
+let activeFilter        = null;
+
+// ── 底盤狀態 ──
+const ADDON_KEYS = ['cement','clear','roller'];
+let addonQtys   = { cement:1, clear:1, roller:1 };
+let addonActive = { cement:false, clear:false, roller:false };
 
 // ── 狀態持久化（sessionStorage）──
 function saveState() {
@@ -752,9 +756,6 @@ function removeFromCart(key){delete cart[key];saveState();updateCartCount();rend
 function changeCartQty(key,delta){if(!cart[key])return;cart[key].qty=Math.max(1,cart[key].qty+delta);saveState();updateCartCount();renderCartList();updatePriceSummary();}
 
 // ── 底盤加購（三種獨立）──
-const ADDON_KEYS = ['cement','clear','roller'];
-let addonQtys = { cement:1, clear:1, roller:1 };
-let addonActive = { cement:false, clear:false, roller:false };
 
 function toggleAddon(type) {
     addonActive[type] = !addonActive[type];
