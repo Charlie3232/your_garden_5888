@@ -769,7 +769,12 @@ function renderCartList(){
     });
 }
 function removeFromCart(key){delete cart[key];saveState();updateCartCount();renderCartList();updatePriceSummary();}
-function changeCartQty(key,delta){if(!cart[key])return;cart[key].qty=Math.max(1,cart[key].qty+delta);saveState();updateCartCount();renderCartList();updatePriceSummary();}
+function changeCartQty(key,delta){
+    if(!cart[key])return;
+    cart[key].qty=cart[key].qty+delta;
+    if(cart[key].qty<=0){ delete cart[key]; }
+    saveState();updateCartCount();renderCartList();updatePriceSummary();
+}
 
 // ── 底盤加購（三種獨立）──
 
