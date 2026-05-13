@@ -866,13 +866,35 @@ function closeCopyModal(){
     if(igBtn) igBtn.style.display='none';
 }
 function copyText(){
-    navigator.clipboard.writeText(document.getElementById('copy-textarea').value).then(()=>{
-        const btn=document.getElementById('copy-btn');
+    const text = document.getElementById('copy-textarea').value;
+    const btn  = document.getElementById('copy-btn');
+    const igBtn= document.getElementById('ig-link-btn');
+
+    // 方法一：現代瀏覽器
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(()=>{
+            btn.innerText='✅ 已複製！去私訊IG吧 🌿';
+            btn.classList.add('copied');
+            if(igBtn) igBtn.style.display='block';
+        }).catch(()=>{ fallbackCopy(text, btn, igBtn); });
+    } else {
+        fallbackCopy(text, btn, igBtn);
+    }
+}
+
+function fallbackCopy(text, btn, igBtn) {
+    // 方法二：舊版瀏覽器備用
+    const ta = document.getElementById('copy-textarea');
+    ta.select();
+    ta.setSelectionRange(0, 99999);
+    try {
+        document.execCommand('copy');
         btn.innerText='✅ 已複製！去私訊IG吧 🌿';
         btn.classList.add('copied');
-        const igBtn=document.getElementById('ig-link-btn');
         if(igBtn) igBtn.style.display='block';
-    });
+    } catch(e) {
+        btn.innerText='請手動長按文字複製';
+    }
 }
 
 function showToast(msg){const t=document.getElementById('toast-notice');t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
