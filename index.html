@@ -92,8 +92,8 @@
         .card-info h2 { font-size:clamp(0.7rem,2.5vw,1rem); letter-spacing:1px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .preorder-label { font-size:0.72rem; color:#c0392b; margin-top:4px; letter-spacing:0.5px; opacity:0.8; }
         .filter-hint { font-size:0.7rem; color:#b07070; margin-top:5px; letter-spacing:0.5px; }
-        .card-tags { display:flex; flex-wrap:wrap; gap:4px; justify-content:center; margin-top:6px; }
-        .card-tag { font-size:0.62rem; color:#888; background:rgba(0,0,0,0.06); border-radius:10px; padding:2px 7px; letter-spacing:0.3px; }
+        .detail-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+        .detail-tag { font-size:0.78rem; color:#666; background:rgba(0,0,0,0.06); border-radius:12px; padding:4px 12px; letter-spacing:0.3px; }
         .loading-msg { text-align:center; padding:60px 20px; color:var(--text-sub); font-size:0.9rem; letter-spacing:2px; grid-column:1/-1; }
 
         /* ── 詳情頁 ── */
@@ -208,10 +208,12 @@
 <body>
 
 <nav class="top-nav">
-    <div class="info-panel">
-        <strong>此為商品型錄網站</strong><br>訂購再請點選購物車<br>送出品項後私訊IG~~
+    <div class="info-panel" style="text-align:center;">
+        <strong>此為商品型錄網站</strong><br>
+        訂購請點選購物車<br>
+        送出品項後私訊IG~~
         <a href="https://www.instagram.com/your_garden_5888/" target="_blank" rel="noopener"
-           style="display:block;color:#8aab8a;text-decoration:none;margin-top:4px;font-size:0.78rem;letter-spacing:1px;">
+           style="display:block;color:#8aab8a;text-decoration:none;margin-top:4px;font-size:0.78rem;letter-spacing:1px;text-align:center;">
             @your_garden_5888
         </a>
     </div>
@@ -231,7 +233,7 @@
 <!-- 篩選切換按鈕（左右並排） -->
 <div class="filter-toggle-wrap">
     <button class="filter-toggle-btn" id="ftbtn-detail" onclick="switchFilter('detail')">
-        <span>依據空間及大小選擇</span>
+        <span>依據空間及大小選擇</span><span class="ft-sub">環境 / 光照<br>高度</span>
     </button>
     <button class="filter-toggle-btn" id="ftbtn-lazy" onclick="switchFilter('lazy')">
         <span>我想懶懶的找植物 🌱</span>
@@ -242,7 +244,7 @@
 <!-- 關鍵字搜尋 -->
 <div class="keyword-toggle-wrap">
     <button class="keyword-toggle-btn" id="ftbtn-keyword" onclick="switchFilter('keyword')">
-        <span>🌿 我是植物達人，直接依據植物名稱關鍵字搜尋</span>
+        <span>🌿 我是植物達人</span><span class="ft-sub">直接依據植物名稱關鍵字搜尋</span>
     </button>
 </div>
 <div class="filter-panel" id="filter-panel-keyword">
@@ -329,7 +331,7 @@
         <div class="trial-notice">
             ⚠️ 此頁面僅為試算品項，非正式訂單<br>
             <strong>訂購請私訊 IG @your_garden_5888</strong><br>
-            <span style="font-size:0.75rem;color:#9a7a50;margin-top:4px;display:block;">按下方送出品項後，系統會將品項讓您複製內容方便私訊IG</span>
+            <span style="font-size:0.75rem;color:#9a7a50;margin-top:4px;display:block;">按下方送出品項後，系統會讓您複製內容<br>方便私訊IG</span>
         </div>
         <div id="cart-list"></div>
 
@@ -341,7 +343,7 @@
                     <img src="https://img2.pixhost.to/images/7834/725158266_s__9306426_0.jpg" alt="水泥底盤" onerror="this.style.display='none'">
                     <div class="addon-card-name">水泥底盤</div>
                     <div class="addon-card-price">+NT$149</div>
-                    <div class="addon-card-note">10*10 / 12*12<br>14*14水滴盆 適用</div>
+                    <div class="addon-card-note">10-14CM<br>水滴盆適用</div>
                     <div class="addon-qty-ctrl" id="addon-qty-cement" style="display:none;">
                         <button onclick="changeAddonQty('cement',-1)" class="addon-q-btn">-</button>
                         <span id="addon-val-cement">1</span>
@@ -461,6 +463,8 @@ function restoreState() {
         if (aq) { const parsed = JSON.parse(aq); if(parsed && typeof parsed==='object') addonQtys = parsed; }
         const r = sessionStorage.getItem('yg_region');
         if (r) { const parsed = JSON.parse(r); if(parsed && typeof parsed==='object') selectedRegion = parsed; }
+        // Clear region on fresh load so no default selection shows
+        selectedRegion = null;
     } catch(e){ console.error('restoreState',e); }
 }
 function restoreUI() {
@@ -476,12 +480,7 @@ function restoreUI() {
             tog.classList.add('active'); tog.innerText = '取消';
         }
     });
-    // 地區
-    if (selectedRegion) {
-        document.querySelectorAll('.region-btn').forEach(btn => {
-            if (btn.dataset.label === selectedRegion.label) btn.classList.add('selected');
-        });
-    }
+    // 地區不還原，每次重新選擇
     // 篩選
     const savedFilter = sessionStorage.getItem('yg_filter');
     const savedTag    = sessionStorage.getItem('yg_tag');
@@ -522,7 +521,11 @@ async function loadPlants() {
     } catch { showLoadError(); }
 }
 function showLoadError() {
-    document.getElementById('product-container').innerHTML='<div class="loading-msg" style="color:#999;">⚠️ 無法載入植物資料</div>';
+    document.getElementById('product-container').innerHTML=`
+    <div class="loading-msg" style="color:#999;grid-column:1/-1;">
+        ⚠️ 無法載入植物資料，請稍後再試<br>
+        <button onclick="loadPlants()" style="margin-top:16px;padding:10px 28px;border-radius:20px;border:none;background:var(--dark-pot);color:white;font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;">🔄 重新載入</button>
+    </div>`;
 }
 
 // ── 渲染卡片 ──
@@ -546,7 +549,6 @@ function renderCards() {
             <div class="card-info">
                 <h2>${p.name}</h2>
                 ${isPreorder?'<div class="preorder-label">較長備貨（7-10天）</div>':''}
-                ${(p.tags&&p.tags.length)?'<div class="card-tags">'+p.tags.map(t=>'<span class="card-tag">'+t+'</span>').join('')+'</div>':''}
             </div>
         </div>`;
     });
@@ -592,6 +594,9 @@ function renderModals() {
                     <div style="font-size:0.95rem;line-height:1.6;">☀️ ${p.sun_text}<br>💧 ${p.water}<br>🏡 ${p.space_text}</div>
                     <div class="section-title">注意事項 NOTES</div>
                     <div class="note-box">${p.notes.map(n=>`<div style="margin-bottom:5px;">${n}</div>`).join('')}</div>
+                    ${(p.tags&&p.tags.length)?`
+                    <div class="section-title">標籤 TAGS</div>
+                    <div class="detail-tags">${p.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('')}</div>`:''}
                     <div style="margin-top:20px;">
                         <button onclick="shareProduct('${p.plant_id}')" style="background:none;border:1px solid #ccc;border-radius:20px;padding:8px 18px;font-family:inherit;font-size:0.78rem;cursor:pointer;color:var(--text-sub);">🔗 分享此植物</button>
                     </div>
