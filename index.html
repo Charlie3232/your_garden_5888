@@ -37,7 +37,7 @@
         .unlimited { display:block; text-align:center; font-size:0.75rem; color:#555; margin-top:5px; font-weight:700; border-top:1px dashed rgba(0,0,0,0.1); padding-top:5px; }
 
         /* ── 篩選切換按鈕 ── */
-        .filter-toggle-wrap { max-width:1000px; margin:0 auto 0; display:grid; grid-template-columns:1fr 1fr; gap:12px; padding:0 20px; }
+        .filter-toggle-wrap { max-width:1000px; margin:0 auto 0; display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 20px; box-sizing:border-box; }
         .filter-toggle-btn {
             width:100%; padding:16px 20px; border-radius:16px; border:1.5px solid rgba(0,0,0,0.1);
             background:rgba(255,255,255,0.35); font-family:inherit; font-size:0.85rem;
@@ -45,8 +45,8 @@
             color:var(--text-main); line-height:1.5; letter-spacing:0.5px;
             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
         }
-        .filter-toggle-btn span { white-space:nowrap; display:block; width:100%; text-align:center; }
-        .filter-toggle-btn .ft-sub { white-space:normal; }
+        .filter-toggle-btn span { white-space:normal; display:block; width:100%; text-align:center; word-break:keep-all; }
+        .filter-toggle-btn .ft-sub { white-space:normal; font-size:0.68rem; }
         .filter-toggle-btn:hover { background:rgba(255,255,255,0.6); border-color:var(--accent-green); }
         .filter-toggle-btn.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
         .filter-toggle-btn.active .ft-sub { color:rgba(255,255,255,0.55); }
@@ -232,7 +232,7 @@
 <!-- 篩選切換按鈕（左右並排） -->
 <div class="filter-toggle-wrap">
     <button class="filter-toggle-btn" id="ftbtn-detail" onclick="switchFilter('detail')">
-        <span>🏠 依據空間及大小選擇</span><span class="ft-sub">環境 / 光照<br>高度</span>
+        <span>🏠 依空間及大小選擇</span><span class="ft-sub">環境 / 光照<br>高度</span>
     </button>
     <button class="filter-toggle-btn" id="ftbtn-lazy" onclick="switchFilter('lazy')">
         <span>我想懶懶的找植物 🌱</span>
