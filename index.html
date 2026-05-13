@@ -106,6 +106,8 @@
         .detail-right { flex:1; padding:40px 45px; overflow-y:auto; max-height:90vh; }
         .section-title { font-weight:700; color:var(--accent-green); margin-top:28px; margin-bottom:12px; border-bottom:1px solid rgba(0,0,0,0.1); padding-bottom:5px; font-size:0.9rem; letter-spacing:2px; }
         .note-box { font-size:0.85rem; color:#555; background:rgba(255,255,255,0.3); padding:18px; border-radius:15px; border:1px dashed rgba(0,0,0,0.1); line-height:1.8; }
+        .note-box div { display:flex; gap:6px; margin-bottom:5px; }
+        .note-box div::before { content:attr(data-emoji); flex-shrink:0; }
         .close-btn { position:absolute; top:15px; right:20px; font-size:1.4rem; cursor:pointer; color:var(--dark-pot); background:rgba(216,216,216,0.85); border:none; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:20; backdrop-filter:blur(4px); }
 
         .variant-selector { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
@@ -597,7 +599,7 @@ function renderModals() {
                     <div class="section-title">照顧指南 GUIDE</div>
                     <div style="font-size:0.95rem;line-height:1.6;">☀️ ${p.sun_text}<br>💧 ${p.water}<br>🏡 ${p.space_text}</div>
                     <div class="section-title">注意事項 NOTES</div>
-                    <div class="note-box">${p.notes.map(n=>`<div style="margin-bottom:5px;">${n}</div>`).join('')}</div>
+                    <div class="note-box">${p.notes.map(n=>{const m=n.match(/^(\S+)\s*(.*)/s);const emoji=m?m[1]:'';const text=m?m[2]:n;return`<div style="margin-bottom:5px;display:flex;gap:6px;align-items:flex-start;"><span style="flex-shrink:0;line-height:1.8;">${emoji}</span><span style="flex:1;">${text}</span></div>`;}).join('')}</div>
                     ${(p.tags&&p.tags.length)?`
                     <div class="section-title">標籤 TAGS</div>
                     <div class="detail-tags">${p.tags.map(t=>`<span class="detail-tag">${t}</span>`).join('')}</div>`:''}
