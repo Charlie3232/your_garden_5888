@@ -232,10 +232,13 @@
 <!-- 篩選切換按鈕（左右並排） -->
 <div class="filter-toggle-wrap">
     <button class="filter-toggle-btn" id="ftbtn-detail" onclick="switchFilter('detail')">
-        <span>🏠 依空間及大小選擇</span><span class="ft-sub">環境 / 光照<br>高度</span>
+        <span class="ft-emoji">🏠</span>
+        <span>依空間及大小選擇</span>
+        <span class="ft-sub">環境 / 光照<br>高度</span>
     </button>
     <button class="filter-toggle-btn" id="ftbtn-lazy" onclick="switchFilter('lazy')">
-        <span>我想懶懶的找植物 🌱</span>
+        <span class="ft-emoji">🌱</span>
+        <span>我想懶懶的找植物</span>
         <span class="ft-sub">依據小樣兒精選 HashTag<br>快速挑選</span>
     </button>
 </div>
@@ -243,7 +246,8 @@
 <!-- 關鍵字搜尋 -->
 <div class="keyword-toggle-wrap">
     <button class="keyword-toggle-btn" id="ftbtn-keyword" onclick="switchFilter('keyword')">
-        <span>🔍 我是植物達人</span><span class="ft-sub">直接依據植物名稱關鍵字搜尋</span>
+        <span>🔍 我是植物達人</span>
+        <span class="ft-sub">直接依據植物名稱關鍵字搜尋</span>
     </button>
 </div>
 <div class="filter-panel" id="filter-panel-keyword">
@@ -506,6 +510,7 @@ function restoreUI() {
 
 // ── 載入 ──
 async function loadPlants() {
+    document.getElementById('product-container').innerHTML='<div class="loading-msg">🌿 載入中 Loading...</div>';
     try {
         const res  = await fetch(`${SCRIPT_URL}?action=getPlants`);
         const json = await res.json();
@@ -523,7 +528,7 @@ function showLoadError() {
     document.getElementById('product-container').innerHTML=`
     <div class="loading-msg" style="color:#999;grid-column:1/-1;">
         ⚠️ 無法載入植物資料，請稍後再試<br>
-        <button onclick="loadPlants()" style="margin-top:16px;padding:10px 28px;border-radius:20px;border:none;background:var(--dark-pot);color:white;font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;">🔄 重新載入</button>
+        <button onclick="this.innerText='載入中...';this.disabled=true;loadPlants();" style="margin-top:16px;padding:10px 28px;border-radius:20px;border:none;background:var(--dark-pot);color:white;font-family:inherit;font-size:0.85rem;font-weight:700;cursor:pointer;">🔄 重新載入</button>
     </div>`;
 }
 
@@ -666,6 +671,11 @@ function switchFilter(type) {
     if(hint) hint.style.display=(type==='detail'||type==='keyword')?'block':'none';
     saveState();
     applyFilters();
+    // Scroll to filter panel
+    setTimeout(()=>{
+        const panel=document.getElementById(`filter-panel-${type}`);
+        if(panel) panel.scrollIntoView({behavior:'smooth', block:'start'});
+    }, 100);
 }
 
 function resetDetailFilters() {
