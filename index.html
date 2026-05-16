@@ -520,7 +520,11 @@ function restoreUI() {
 // ── 載入 ──
 async function loadPlants() {
     document.getElementById('product-container').innerHTML='<div class="loading-msg">🌿 載入中 Loading...</div>';
-    document.getElementById('loading-notice').style.display='block';
+    // 載入中禁用三個篩選按鈕
+    ['ftbtn-detail','ftbtn-lazy','ftbtn-keyword'].forEach(id=>{
+        const b=document.getElementById(id);
+        if(b){ b.style.opacity='0.45'; b.style.cursor='not-allowed'; b.style.pointerEvents='none'; }
+    });
     // 瀏覽人次
     fetch(`${SCRIPT_URL}?action=trackVisit`).catch(()=>{});
     // 動態載入標籤
@@ -541,10 +545,22 @@ async function loadPlants() {
             renderModals();
             isLoading = false;
             document.getElementById('loading-notice').style.display='none';
+            ['ftbtn-detail','ftbtn-lazy','ftbtn-keyword'].forEach(id=>{
+                const b=document.getElementById(id);
+                if(b){ b.style.opacity=''; b.style.cursor=''; b.style.pointerEvents=''; }
+            });
             restoreUI();
             checkUrlParam();
         } else showLoadError();
-    } catch { isLoading = false; document.getElementById('loading-notice').style.display='none'; showLoadError(); }
+    } catch {
+        isLoading = false;
+        document.getElementById('loading-notice').style.display='none';
+        ['ftbtn-detail','ftbtn-lazy','ftbtn-keyword'].forEach(id=>{
+            const b=document.getElementById(id);
+            if(b){ b.style.opacity=''; b.style.cursor=''; b.style.pointerEvents=''; }
+        });
+        showLoadError();
+    }
 }
 function showLoadError() {
     document.getElementById('product-container').innerHTML=`
@@ -674,12 +690,7 @@ function renderTagPills(tags) {
 }
 
 function switchFilter(type) {
-    if (isLoading) {
-        const n=document.getElementById('loading-notice');
-        n.style.display='block';
-        setTimeout(()=>{ if(isLoading) n.style.display='none'; },1500);
-        return;
-    }
+    if (isLoading) { return; } // 按鈕已被 pointerEvents:none 擋掉
     const allTypes = ['detail','lazy','keyword'];
     if (activeFilter === type) {
         activeFilter = null;
