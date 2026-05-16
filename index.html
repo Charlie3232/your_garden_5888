@@ -200,7 +200,8 @@
         #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9000; align-items:center; justify-content:center; cursor:zoom-out; }
         #lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:10px; }
         #toast-notice { display:none; position:fixed; top:24px; left:50%; transform:translateX(-50%); background:var(--dark-pot); color:white; padding:13px 24px; border-radius:30px; z-index:5000; font-size:0.88rem; white-space:nowrap; }
-        #loading-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(18,18,18,0.88); color:white; padding:20px 32px; border-radius:20px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(6px); pointer-events:none; line-height:1.8; }
+        #loading-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(18,18,18,0.88); color:white; padding:24px 36px; border-radius:24px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(8px); pointer-events:none; line-height:2; transition:all 0.3s ease; opacity:0; }
+        #loading-notice.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
         #success-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(78,90,77,0.92); color:white; padding:24px 36px; border-radius:24px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(8px); pointer-events:none; line-height:2; transition:all 0.3s ease; opacity:0; }
         #success-notice.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
 
@@ -334,8 +335,8 @@
     🛒 完成挑選 試算總額（<span id="cart-count">0</span>）
 </button>
 <div id="toast-notice"></div>
-<div id="loading-notice">🌿 載入中，請稍等~~<br>🥺</div>
-<div id="success-notice">🌿 已載入完成<br><span style="font-size:0.82rem;opacity:0.85;">可以開始依據您喜歡的方式<br>療癒地挑選植物囉 ♡</span></div>
+<div id="loading-notice"><span style="font-size:1.1rem;">🌿 載入中</span><br><span style="font-size:0.82rem;opacity:0.85;">請稍等，植物們正在趕來~~🥺</span></div>
+<div id="success-notice">🌿 已載入完成<br><span style="font-size:0.82rem;opacity:0.85;">可以開始依據您喜歡的方式，療癒地挑選植物囉 ♡</span></div>
 
 <!-- 試算頁 -->
 <div id="cartModal" class="cart-modal">
@@ -528,6 +529,9 @@ async function loadPlants() {
         const b=document.getElementById(id);
         if(b){ b.style.opacity='0.45'; b.style.cursor='not-allowed'; b.style.pointerEvents='none'; }
     });
+    const ln=document.getElementById('loading-notice');
+    ln.style.display='block';
+    setTimeout(()=>ln.classList.add('show'),50);
     // 瀏覽人次
     fetch(`${SCRIPT_URL}?action=trackVisit`).catch(()=>{});
     // 動態載入標籤
@@ -547,7 +551,9 @@ async function loadPlants() {
             renderCards();
             renderModals();
             isLoading = false;
-            document.getElementById('loading-notice').style.display='none';
+            const ln2=document.getElementById('loading-notice');
+            ln2.classList.remove('show');
+            setTimeout(()=>ln2.style.display='none', 300);
             ['ftbtn-detail','ftbtn-lazy','ftbtn-keyword'].forEach(id=>{
                 const b=document.getElementById(id);
                 if(b){ b.style.opacity=''; b.style.cursor=''; b.style.pointerEvents=''; }
@@ -565,7 +571,8 @@ async function loadPlants() {
         } else showLoadError();
     } catch {
         isLoading = false;
-        document.getElementById('loading-notice').style.display='none';
+        const ln3=document.getElementById('loading-notice');
+        ln3.classList.remove('show'); setTimeout(()=>ln3.style.display='none',300);
         ['ftbtn-detail','ftbtn-lazy','ftbtn-keyword'].forEach(id=>{
             const b=document.getElementById(id);
             if(b){ b.style.opacity=''; b.style.cursor=''; b.style.pointerEvents=''; }
