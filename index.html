@@ -438,6 +438,7 @@ const ADDONS = {
 };
 
 let plantsData = [];
+let isLoading  = true;
 let cart = {};
 let currentStatusFilter = 'instock';
 let selectedTagFilter   = null;
@@ -535,10 +536,11 @@ async function loadPlants() {
             shufflePlants(plantsData);
             renderCards();
             renderModals();
+            isLoading = false;
             restoreUI();
             checkUrlParam();
         } else showLoadError();
-    } catch { showLoadError(); }
+    } catch { isLoading = false; showLoadError(); }
 }
 function showLoadError() {
     document.getElementById('product-container').innerHTML=`
@@ -668,6 +670,7 @@ function renderTagPills(tags) {
 }
 
 function switchFilter(type) {
+    if (isLoading) { showToast('🌿 載入中，請稍等~~🥺'); return; }
     const allTypes = ['detail','lazy','keyword'];
     if (activeFilter === type) {
         activeFilter = null;
