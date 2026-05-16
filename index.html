@@ -11,6 +11,10 @@
     <meta property="og:description" content="來自職人手藝，搭配手工水泥盆器，特殊植物專車不封箱配送到家，台灣北中南均可配送。">
     <meta property="og:url" content="https://yourgarden5888.com">
     <meta property="og:type" content="website">
+    <meta property="og:image" content="https://img2.pixhost.to/images/7939/726945614_images-5.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:image" content="https://img2.pixhost.to/images/7939/726945614_images-5.jpg">
     <meta property="og:locale" content="zh_TW">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="小樣兒園藝 YourGarden | 職人植選">
@@ -301,7 +305,7 @@
 
 <!-- 篩選面板二：HashTag 單選 -->
 <div class="filter-panel" id="filter-panel-lazy">
-    <div class="tag-pills">
+    <div class="tag-pills" id="tag-pills-container">
         <button class="tag-pill" data-tag="#寵物友善"  onclick="toggleTagFilter(this)">#寵物友善</button>
         <button class="tag-pill" data-tag="#室內無光"  onclick="toggleTagFilter(this)">#室內無光</button>
         <button class="tag-pill" data-tag="#西曬"      onclick="toggleTagFilter(this)">#西曬</button>
@@ -425,7 +429,7 @@
 </div>
 
 <script>
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby0V5JhplIEmayvz7Rbnx3MT7hcsNXXJZG8KfnjYp_wp_01eWwMxOrWFAmGWX29Hha-/exec';
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9fn3CgrHVnpXi_umM9VLhedvKORRZtL21yk0Q7fOi_z50r2iCa0FeN7suT6gpE-CW/exec';
 
 const ADDONS = {
     cement: { name:'水泥底盤', price:149 },
@@ -513,6 +517,16 @@ function restoreUI() {
 // ── 載入 ──
 async function loadPlants() {
     document.getElementById('product-container').innerHTML='<div class="loading-msg">🌿 載入中 Loading...</div>';
+    // 瀏覽人次
+    fetch(`${SCRIPT_URL}?action=trackVisit`).catch(()=>{});
+    // 動態載入標籤
+    try {
+        const tagRes  = await fetch(`${SCRIPT_URL}?action=getTags`);
+        const tagJson = await tagRes.json();
+        if (tagJson.success && tagJson.tags.length) {
+            renderTagPills(tagJson.tags);
+        }
+    } catch(e){}
     try {
         const res  = await fetch(`${SCRIPT_URL}?action=getPlants`);
         const json = await res.json();
@@ -643,6 +657,14 @@ function selectVariant(plantId, variantId) {
 // ── 篩選 ──
 function hideAllCards() {
     document.querySelectorAll('.plant-card').forEach(c=>c.style.display='none');
+}
+
+function renderTagPills(tags) {
+    const container = document.getElementById('tag-pills-container');
+    if (!container) return;
+    container.innerHTML = tags.map(t =>
+        `<button class="tag-pill" data-tag="${t}" onclick="toggleTagFilter(this)">${t}</button>`
+    ).join('');
 }
 
 function switchFilter(type) {
