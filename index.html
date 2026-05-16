@@ -200,6 +200,7 @@
         #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9000; align-items:center; justify-content:center; cursor:zoom-out; }
         #lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:10px; }
         #toast-notice { display:none; position:fixed; top:24px; left:50%; transform:translateX(-50%); background:var(--dark-pot); color:white; padding:13px 24px; border-radius:30px; z-index:5000; font-size:0.88rem; white-space:nowrap; }
+        #loading-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); background:rgba(18,18,18,0.88); color:white; padding:20px 32px; border-radius:20px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(6px); pointer-events:none; line-height:1.8; }
 
         @media(max-width:850px){
             .top-nav{padding:20px;}
@@ -331,6 +332,7 @@
     🛒 完成挑選 試算總額（<span id="cart-count">0</span>）
 </button>
 <div id="toast-notice"></div>
+<div id="loading-notice">🌿 載入中，請稍等~~<br>🥺</div>
 
 <!-- 試算頁 -->
 <div id="cartModal" class="cart-modal">
@@ -518,6 +520,7 @@ function restoreUI() {
 // ── 載入 ──
 async function loadPlants() {
     document.getElementById('product-container').innerHTML='<div class="loading-msg">🌿 載入中 Loading...</div>';
+    document.getElementById('loading-notice').style.display='block';
     // 瀏覽人次
     fetch(`${SCRIPT_URL}?action=trackVisit`).catch(()=>{});
     // 動態載入標籤
@@ -537,10 +540,11 @@ async function loadPlants() {
             renderCards();
             renderModals();
             isLoading = false;
+            document.getElementById('loading-notice').style.display='none';
             restoreUI();
             checkUrlParam();
         } else showLoadError();
-    } catch { isLoading = false; showLoadError(); }
+    } catch { isLoading = false; document.getElementById('loading-notice').style.display='none'; showLoadError(); }
 }
 function showLoadError() {
     document.getElementById('product-container').innerHTML=`
@@ -670,7 +674,12 @@ function renderTagPills(tags) {
 }
 
 function switchFilter(type) {
-    if (isLoading) { showToast('🌿 載入中，請稍等~~🥺'); return; }
+    if (isLoading) {
+        const n=document.getElementById('loading-notice');
+        n.style.display='block';
+        setTimeout(()=>{ if(isLoading) n.style.display='none'; },1500);
+        return;
+    }
     const allTypes = ['detail','lazy','keyword'];
     if (activeFilter === type) {
         activeFilter = null;
