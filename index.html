@@ -29,7 +29,6 @@
         * { margin:0; padding:0; box-sizing:border-box; }
         body { background-color:var(--concrete-bg); background-image:radial-gradient(var(--concrete-grain) 1px,transparent 0); background-size:30px 30px; color:var(--text-main); font-family:'Noto Serif TC',serif; -webkit-font-smoothing:antialiased; }
 
-        /* ── 頂部 ── */
         .top-nav { width:100%; padding:20px 40px 30px; display:flex; justify-content:space-between; align-items:stretch; flex-wrap:wrap; gap:20px; position:relative; z-index:100; }
         .info-panel { background:rgba(216,216,216,0.8); backdrop-filter:blur(10px); padding:15px 20px; border-radius:15px; border:1px solid rgba(0,0,0,0.05); font-size:0.8rem; line-height:1.6; letter-spacing:1px; box-shadow:10px 10px 30px rgba(0,0,0,0.05); flex:1; min-width:200px; display:flex; flex-direction:column; justify-content:center; }
         .header-center { text-align:center; flex:2; min-width:280px; }
@@ -40,7 +39,6 @@
         .shipping-info strong { display:block; white-space:nowrap; margin-bottom:5px; font-size:0.8rem; }
         .unlimited { display:block; text-align:center; font-size:0.82rem; color:#555; margin-top:5px; font-weight:700; border-top:1px dashed rgba(0,0,0,0.1); padding-top:5px; letter-spacing:4.5px; text-indent:4.5px; }
 
-        /* ── 篩選切換按鈕 ── */
         .filter-toggle-wrap { max-width:1000px; margin:0 auto 0; display:grid; grid-template-columns:1fr 1fr; gap:10px; padding:0 20px; box-sizing:border-box; }
         .filter-toggle-btn {
             width:100%; padding:16px 20px; border-radius:16px; border:1.5px solid rgba(0,0,0,0.1);
@@ -48,15 +46,16 @@
             font-weight:700; cursor:pointer; transition:all 0.2s; text-align:center;
             color:var(--text-main); line-height:1.5; letter-spacing:0.5px;
             display:flex; flex-direction:column; align-items:center; justify-content:center; gap:3px;
+            user-select:none;
         }
         .filter-toggle-btn span { white-space:normal; display:block; width:100%; text-align:center; word-break:keep-all; }
         .filter-toggle-btn .ft-sub { white-space:normal; font-size:0.68rem; }
         .filter-toggle-btn:hover { background:rgba(255,255,255,0.6); border-color:var(--accent-green); }
         .filter-toggle-btn.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
         .filter-toggle-btn.active .ft-sub { color:rgba(255,255,255,0.55); }
+        .ft-emoji { font-size:1.4rem; display:block; margin-bottom:2px; }
         .ft-sub { font-size:0.68rem; font-weight:400; color:#aaa; letter-spacing:0.5px; white-space:normal; line-height:1.5; }
 
-        /* ── 篩選面板 ── */
         .filter-panel { max-width:1000px; margin:0 auto 16px; background:rgba(255,255,255,0.2); padding:22px 25px; border-radius:0 0 20px 20px; border:1px solid rgba(0,0,0,0.05); border-top:none; display:none; flex-direction:column; gap:16px; align-items:center; }
         .filter-panel.active { display:flex; }
 
@@ -67,16 +66,12 @@
         .checkbox-group { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; }
         .checkbox-item { display:flex; align-items:center; gap:5px; font-size:0.82rem; cursor:pointer; color:var(--text-main); font-weight:500; }
         .checkbox-item input { cursor:pointer; accent-color:var(--accent-green); width:15px; height:15px; }
-        .status-filter { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; }
-        .status-pill { padding:6px 16px; border-radius:20px; border:1.5px solid rgba(0,0,0,0.15); background:white; font-family:inherit; font-size:0.78rem; cursor:pointer; font-weight:700; transition:all 0.2s; }
-        .status-pill.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
 
         .keyword-wrap { position:relative; width:100%; max-width:400px; }
         .keyword-input { width:100%; padding:10px 16px 10px 38px; border-radius:30px; border:1px solid rgba(0,0,0,0.12); background:rgba(255,255,255,0.7); font-family:inherit; font-size:16px; outline:none; transition:border-color 0.2s; }
         .keyword-input:focus { border-color:var(--accent-green); }
         .keyword-icon { position:absolute; left:13px; top:50%; transform:translateY(-50%); color:#aaa; pointer-events:none; }
 
-        /* HashTag 篩選 */
         .tag-pills { display:flex; flex-wrap:wrap; gap:8px; justify-content:center; }
         .keyword-toggle-wrap { max-width:1000px; margin:8px auto 0; display:flex; justify-content:center; padding:0 20px; }
         .keyword-toggle-btn { padding:14px 40px; border-radius:16px; border:1.5px solid rgba(0,0,0,0.1); background:rgba(255,255,255,0.35); font-family:inherit; font-size:0.88rem; font-weight:700; cursor:pointer; transition:all 0.2s; text-align:center; color:var(--text-main); }
@@ -85,8 +80,8 @@
         .tag-pill { padding:8px 18px; border-radius:20px; border:1.5px solid rgba(0,0,0,0.12); background:white; font-family:inherit; font-size:0.82rem; cursor:pointer; font-weight:700; transition:all 0.18s; letter-spacing:0.5px; }
         .tag-pill:hover { border-color:var(--accent-green); }
         .tag-pill.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
+        .filter-hint { font-size:0.7rem; color:#b07070; margin-top:5px; letter-spacing:0.5px; }
 
-        /* ── 產品列表 ── */
         #product-container { max-width:1200px; margin:0 auto 100px; display:grid; grid-template-columns:repeat(3,230px); justify-content:center; gap:40px 60px; padding:0 20px; align-items:start; }
         .plant-card { width:100%; max-width:230px; cursor:pointer; transition:0.5s ease; margin:0 auto; position:relative; }
         .plant-card:hover { transform:translateY(-10px); }
@@ -95,12 +90,10 @@
         .card-info { margin-top:15px; text-align:center; overflow:hidden; width:100%; }
         .card-info h2 { font-size:13px; letter-spacing:1px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
         .preorder-label { font-size:0.72rem; color:#c0392b; margin-top:4px; letter-spacing:0.5px; opacity:0.8; }
-        .filter-hint { font-size:0.7rem; color:#b07070; margin-top:5px; letter-spacing:0.5px; }
         .detail-tags { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
         .detail-tag { font-size:0.78rem; color:#666; background:rgba(0,0,0,0.06); border-radius:12px; padding:4px 12px; letter-spacing:0.3px; }
         .loading-msg { text-align:center; padding:60px 20px; color:var(--text-sub); font-size:0.9rem; letter-spacing:2px; grid-column:1/-1; }
 
-        /* ── 詳情頁 ── */
         .detail-overlay { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); backdrop-filter:blur(12px); z-index:1000; overflow-y:auto; }
         .detail-content { background:var(--concrete-bg); max-width:1000px; margin:40px auto; border-radius:30px; display:flex; position:relative; overflow:hidden; }
         .detail-left-gallery { flex:0 0 430px; padding:25px; display:grid; grid-template-columns:1fr 1fr; grid-template-rows:1fr 1fr; gap:10px; align-content:start; }
@@ -110,8 +103,6 @@
         .detail-right { flex:1; padding:40px 45px; overflow-y:auto; max-height:90vh; }
         .section-title { font-weight:700; color:var(--accent-green); margin-top:28px; margin-bottom:12px; border-bottom:1px solid rgba(0,0,0,0.1); padding-bottom:5px; font-size:0.9rem; letter-spacing:2px; }
         .note-box { font-size:0.85rem; color:#555; background:rgba(255,255,255,0.3); padding:18px; border-radius:15px; border:1px dashed rgba(0,0,0,0.1); line-height:1.8; }
-        .note-box div { display:flex; gap:6px; margin-bottom:5px; }
-        .note-box div::before { content:attr(data-emoji); flex-shrink:0; }
         .close-btn { position:absolute; top:15px; right:20px; font-size:1.4rem; cursor:pointer; color:var(--dark-pot); background:rgba(216,216,216,0.85); border:none; border-radius:50%; width:40px; height:40px; display:flex; align-items:center; justify-content:center; z-index:20; backdrop-filter:blur(4px); }
 
         .variant-selector { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
@@ -132,11 +123,9 @@
         .add-btn:hover { opacity:0.8; }
         .add-btn:disabled { background:#ccc; color:#999; cursor:not-allowed; }
 
-        /* ── 浮動按鈕 ── */
         #checkout-float { position:fixed; bottom:28px; right:24px; background:var(--dark-pot); color:white; padding:14px 24px; border-radius:50px; display:none; cursor:pointer; z-index:1100; font-weight:700; font-size:0.82rem; box-shadow:0 4px 24px rgba(0,0,0,0.3); border:none; font-family:inherit; transition:transform 0.2s; }
         #checkout-float:hover { transform:scale(1.05); }
 
-        /* ── 試算頁 ── */
         .cart-modal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:2000; overflow-y:auto; padding:15px; }
         .cart-inner { background:var(--concrete-bg); max-width:560px; width:100%; margin:30px auto; border-radius:30px; padding:35px 30px; position:relative; }
         .trial-notice { background:rgba(138,117,85,0.12); border:1px solid rgba(138,117,85,0.3); border-radius:12px; padding:12px 16px; margin-bottom:22px; font-size:0.8rem; color:#7a6040; line-height:1.6; text-align:center; }
@@ -164,7 +153,6 @@
         .addon-q-btn { border:none; background:none; cursor:pointer; font-size:1rem; color:#555; padding:0 4px; }
         .addon-toggle-btn { margin-top:8px; width:100%; padding:6px; border-radius:8px; border:1.5px solid rgba(0,0,0,0.12); background:white; font-family:inherit; font-size:0.72rem; font-weight:700; cursor:pointer; transition:all 0.15s; }
         .addon-toggle-btn.active { background:var(--dark-pot); color:white; border-color:var(--dark-pot); }
-        .addon-card.selected { border-color:var(--dark-pot); background:rgba(18,18,18,0.03); }
 
         .region-section { margin:20px 0; }
         .region-label { font-size:0.78rem; font-weight:700; color:var(--accent-green); letter-spacing:1px; margin-bottom:10px; }
@@ -200,10 +188,20 @@
         #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9000; align-items:center; justify-content:center; cursor:zoom-out; }
         #lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:10px; }
         #toast-notice { display:none; position:fixed; top:24px; left:50%; transform:translateX(-50%); background:var(--dark-pot); color:white; padding:13px 24px; border-radius:30px; z-index:5000; font-size:0.88rem; white-space:nowrap; }
+
+        /* ── 載入中/完成提示 ── */
         #loading-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(130,125,120,0.88); color:white; padding:26px 36px; border-radius:24px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(8px); pointer-events:none; line-height:2; transition:all 0.3s ease; opacity:0; width:max-content; max-width:85vw; }
         #loading-notice.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
         #success-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(78,90,77,0.92); color:white; padding:26px 36px; border-radius:24px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(8px); pointer-events:none; line-height:2; transition:all 0.3s ease; opacity:0; width:max-content; max-width:85vw; }
         #success-notice.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+
+        /* 動態點點 */
+        .dot-loading { display:inline-block; }
+        .dot-loading span { animation:dotBlink 1.4s infinite; opacity:0; }
+        .dot-loading span:nth-child(1) { animation-delay:0s; }
+        .dot-loading span:nth-child(2) { animation-delay:0.3s; }
+        .dot-loading span:nth-child(3) { animation-delay:0.6s; }
+        @keyframes dotBlink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
 
         @media(max-width:850px){
             .top-nav{padding:20px;}
@@ -239,7 +237,6 @@
     </div>
 </nav>
 
-<!-- 篩選切換按鈕（左右並排） -->
 <div class="filter-toggle-wrap">
     <button class="filter-toggle-btn" id="ftbtn-detail" onclick="switchFilter('detail')">
         <span class="ft-emoji">🏠</span>
@@ -253,7 +250,6 @@
     </button>
 </div>
 
-<!-- 關鍵字搜尋 -->
 <div class="keyword-toggle-wrap">
     <button class="keyword-toggle-btn" id="ftbtn-keyword" onclick="switchFilter('keyword')">
         <span>🔍 我是植物達人</span>
@@ -267,7 +263,6 @@
     </div>
 </div>
 
-<!-- 篩選面板一：詳細篩選 -->
 <div class="filter-panel" id="filter-panel-detail">
     <div class="filter-row">
         <div class="filter-group">
@@ -288,26 +283,23 @@
             </div>
             <span class="filter-hint" id="hint-sun" style="display:none;">尚未選擇 光照需求</span>
         </div>
-
     </div>
     <div class="filter-row">
         <div class="filter-group">
             <label class="group-title">植物高度 <span>可多選</span></label>
             <div class="checkbox-group" id="height-checkboxes">
-                <label class="checkbox-item"><input type="checkbox" value="15-25" onchange="applyFilters()"> 小品: 15-25CM</label>
-                <label class="checkbox-item"><input type="checkbox" value="26-35" onchange="applyFilters()"> 中小品: 26-35CM</label>
-                <label class="checkbox-item"><input type="checkbox" value="36-55" onchange="applyFilters()"> 中品: 36-55CM</label>
-                <label class="checkbox-item"><input type="checkbox" value="56-75" onchange="applyFilters()"> 中大品: 56-75CM</label>
+                <label class="checkbox-item"><input type="checkbox" value="15-25"  onchange="applyFilters()"> 小品: 15-25CM</label>
+                <label class="checkbox-item"><input type="checkbox" value="26-35"  onchange="applyFilters()"> 中小品: 26-35CM</label>
+                <label class="checkbox-item"><input type="checkbox" value="36-55"  onchange="applyFilters()"> 中品: 36-55CM</label>
+                <label class="checkbox-item"><input type="checkbox" value="56-75"  onchange="applyFilters()"> 中大品: 56-75CM</label>
                 <label class="checkbox-item"><input type="checkbox" value="76-120" onchange="applyFilters()"> 大品: 76-120CM</label>
                 <label class="checkbox-item"><input type="checkbox" value="121-999" onchange="applyFilters()"> 大大品: 121CM以上</label>
             </div>
             <span class="filter-hint" id="hint-height" style="display:none;">尚未選擇 植物高度</span>
         </div>
     </div>
-
 </div>
 
-<!-- 篩選面板二：HashTag 單選 -->
 <div class="filter-panel" id="filter-panel-lazy">
     <div class="tag-pills" id="tag-pills-container">
         <button class="tag-pill" data-tag="#寵物友善"  onclick="toggleTagFilter(this)">#寵物友善</button>
@@ -335,10 +327,18 @@
     🛒 完成挑選 試算總額（<span id="cart-count">0</span>）
 </button>
 <div id="toast-notice"></div>
-<div id="loading-notice"><span style="font-size:1.1rem;">🌿 載入中</span><br><span style="font-size:0.82rem;opacity:0.85;">請稍等，植物們正在趕來~~🥺</span></div>
-<div id="success-notice">🌿 已載入完成<br><span style="font-size:0.82rem;opacity:0.85;">可以依據您喜歡的方式</span><br><span style="font-size:0.82rem;opacity:0.85;">療癒地挑選植物囉 ♡</span></div>
 
-<!-- 試算頁 -->
+<div id="loading-notice">
+    <span style="font-size:1.1rem;">🌿 載入中<span class="dot-loading"><span>.</span><span>.</span><span>.</span></span></span><br>
+    <span style="font-size:0.82rem;opacity:0.85;">植物們正在趕來~~🥺</span><br>
+    <span style="font-size:0.75rem;opacity:0.7;">請稍等 10-15 秒 ~</span>
+</div>
+<div id="success-notice">
+    🌿 已載入完成<br>
+    <span style="font-size:0.82rem;opacity:0.85;">可以依據您喜歡的方式</span><br>
+    <span style="font-size:0.82rem;opacity:0.85;">療癒地挑選植物囉 ♡</span>
+</div>
+
 <div id="cartModal" class="cart-modal">
     <div class="cart-inner">
         <button class="close-btn" onclick="closeCart()">&times;</button>
@@ -362,7 +362,7 @@
                     <div class="addon-qty-ctrl" id="addon-qty-cement" style="display:none;">
                         <button onclick="changeAddonQty('cement',-1)" class="addon-q-btn">-</button>
                         <span id="addon-val-cement">1</span>
-                        <button onclick="changeAddonQty('cement',1)"  class="addon-q-btn">+</button>
+                        <button onclick="changeAddonQty('cement',1)" class="addon-q-btn">+</button>
                     </div>
                     <button class="addon-toggle-btn" id="addon-tog-cement" onclick="toggleAddon('cement')">加購</button>
                 </div>
@@ -374,7 +374,7 @@
                     <div class="addon-qty-ctrl" id="addon-qty-clear" style="display:none;">
                         <button onclick="changeAddonQty('clear',-1)" class="addon-q-btn">-</button>
                         <span id="addon-val-clear">1</span>
-                        <button onclick="changeAddonQty('clear',1)"  class="addon-q-btn">+</button>
+                        <button onclick="changeAddonQty('clear',1)" class="addon-q-btn">+</button>
                     </div>
                     <button class="addon-toggle-btn" id="addon-tog-clear" onclick="toggleAddon('clear')">加購</button>
                 </div>
@@ -386,7 +386,7 @@
                     <div class="addon-qty-ctrl" id="addon-qty-roller" style="display:none;">
                         <button onclick="changeAddonQty('roller',-1)" class="addon-q-btn">-</button>
                         <span id="addon-val-roller">1</span>
-                        <button onclick="changeAddonQty('roller',1)"  class="addon-q-btn">+</button>
+                        <button onclick="changeAddonQty('roller',1)" class="addon-q-btn">+</button>
                     </div>
                     <button class="addon-toggle-btn" id="addon-tog-roller" onclick="toggleAddon('roller')">加購</button>
                 </div>
@@ -452,12 +452,10 @@ let selectedVariant     = {};
 let selectedRegion      = null;
 let activeFilter        = null;
 
-// ── 底盤狀態 ──
 const ADDON_KEYS = ['cement','clear','roller'];
 let addonQtys   = { cement:1, clear:1, roller:1 };
 let addonActive = { cement:false, clear:false, roller:false };
 
-// ── 狀態持久化（sessionStorage）──
 function saveState() {
     try {
         if (typeof sessionStorage === 'undefined') return;
@@ -477,16 +475,11 @@ function restoreState() {
         if (aa) { const parsed = JSON.parse(aa); if(parsed && typeof parsed==='object') addonActive = parsed; }
         const aq = sessionStorage.getItem('yg_addon_qtys');
         if (aq) { const parsed = JSON.parse(aq); if(parsed && typeof parsed==='object') addonQtys = parsed; }
-        const r = sessionStorage.getItem('yg_region');
-        if (r) { const parsed = JSON.parse(r); if(parsed && typeof parsed==='object') selectedRegion = parsed; }
-        // Clear region on fresh load so no default selection shows
         selectedRegion = null;
-    } catch(e){ console.error('restoreState',e); }
+    } catch(e){}
 }
 function restoreUI() {
-    // 購物車
     updateCartCount();
-    // 底盤
     ADDON_KEYS.forEach(type => {
         if (addonActive[type]) {
             document.getElementById(`addon-${type}`).classList.add('selected');
@@ -496,8 +489,6 @@ function restoreUI() {
             tog.classList.add('active'); tog.innerText = '取消';
         }
     });
-    // 地區不還原，每次重新選擇
-    // 篩選
     const savedFilter = sessionStorage.getItem('yg_filter');
     const savedTag    = sessionStorage.getItem('yg_tag');
     if (savedFilter) {
@@ -516,15 +507,12 @@ function restoreUI() {
         }
         applyFilters();
     } else {
-        // 沒有儲存的篩選狀態 → 隱藏所有植物
         hideAllCards();
     }
 }
 
-// ── 載入 ──
 async function loadPlants() {
     document.getElementById('product-container').innerHTML='<div class="loading-msg">🌿 載入中 Loading...</div>';
-    // 載入中禁用三個篩選按鈕
     ['ftbtn-detail','ftbtn-lazy','ftbtn-keyword'].forEach(id=>{
         const b=document.getElementById(id);
         if(b){ b.style.opacity='0.45'; b.style.cursor='not-allowed'; b.style.pointerEvents='none'; }
@@ -532,15 +520,11 @@ async function loadPlants() {
     const ln=document.getElementById('loading-notice');
     ln.style.display='block';
     setTimeout(()=>ln.classList.add('show'),50);
-    // 瀏覽人次
     fetch(`${SCRIPT_URL}?action=trackVisit`).catch(()=>{});
-    // 動態載入標籤
     try {
         const tagRes  = await fetch(`${SCRIPT_URL}?action=getTags`);
         const tagJson = await tagRes.json();
-        if (tagJson.success && tagJson.tags.length) {
-            renderTagPills(tagJson.tags);
-        }
+        if (tagJson.success && tagJson.tags.length) renderTagPills(tagJson.tags);
     } catch(e){}
     try {
         const res  = await fetch(`${SCRIPT_URL}?action=getPlants`);
@@ -558,14 +542,10 @@ async function loadPlants() {
                 const b=document.getElementById(id);
                 if(b){ b.style.opacity=''; b.style.cursor=''; b.style.pointerEvents=''; }
             });
-            // 顯示載入完成提示
             const sn = document.getElementById('success-notice');
             sn.style.display='block';
             setTimeout(()=>sn.classList.add('show'), 50);
-            setTimeout(()=>{
-                sn.classList.remove('show');
-                setTimeout(()=>sn.style.display='none', 350);
-            }, 2200);
+            setTimeout(()=>{ sn.classList.remove('show'); setTimeout(()=>sn.style.display='none', 350); }, 2200);
             restoreUI();
             checkUrlParam();
         } else showLoadError();
@@ -588,18 +568,11 @@ function showLoadError() {
     </div>`;
 }
 
-// ── 渲染卡片 ──
 function renderCards() {
     const container = document.getElementById('product-container');
     container.innerHTML = '';
-    const instock  = plantsData.filter(p=>{
-        const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
-        return vis.some(v=>v.status==='instock');
-    });
-    const preorder = plantsData.filter(p=>{
-        const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
-        return vis.length>0&&vis.every(v=>v.status==='preorder');
-    });
+    const instock  = plantsData.filter(p=>{ const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout'); return vis.some(v=>v.status==='instock'); });
+    const preorder = plantsData.filter(p=>{ const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout'); return vis.length>0&&vis.every(v=>v.status==='preorder'); });
     [...instock,...preorder].forEach(p=>{
         const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
         const isPreorder=vis.every(v=>v.status==='preorder');
@@ -614,7 +587,6 @@ function renderCards() {
     });
 }
 
-// ── 渲染詳情 ──
 function renderModals() {
     const box=document.getElementById('modal-container');
     box.innerHTML='';
@@ -671,7 +643,6 @@ function renderVInfo(v) {
     return `盆器：${v.size_label}<br>含盆高度：約 ${v.height_min}-${v.height_max} cm`;
 }
 
-// ── 選擇尺寸 ──
 function selectVariant(plantId, variantId) {
     const p=plantsData.find(pl=>pl.plant_id===plantId);
     const v=p?.variants.find(vv=>vv.variant_id===variantId);
@@ -694,10 +665,7 @@ function selectVariant(plantId, variantId) {
     btn.innerText=v.status==='preorder'?'加入購物車試算（預購）':'加入購物車試算';
 }
 
-// ── 篩選 ──
-function hideAllCards() {
-    document.querySelectorAll('.plant-card').forEach(c=>c.style.display='none');
-}
+function hideAllCards() { document.querySelectorAll('.plant-card').forEach(c=>c.style.display='none'); }
 
 function renderTagPills(tags) {
     const container = document.getElementById('tag-pills-container');
@@ -708,7 +676,7 @@ function renderTagPills(tags) {
 }
 
 function switchFilter(type) {
-    if (isLoading) { return; } // 按鈕已被 pointerEvents:none 擋掉
+    if (isLoading) { return; }
     const allTypes = ['detail','lazy','keyword'];
     if (activeFilter === type) {
         activeFilter = null;
@@ -736,7 +704,6 @@ function switchFilter(type) {
     if(hint) hint.style.display=(type==='detail'||type==='keyword')?'block':'none';
     saveState();
     applyFilters();
-    // Scroll to filter panel
     setTimeout(()=>{
         const panel=document.getElementById(`filter-panel-${type}`);
         if(panel) panel.scrollIntoView({behavior:'smooth', block:'start'});
@@ -759,16 +726,11 @@ function resetLazyFilters() {
     document.querySelectorAll('.tag-pill').forEach(b=>b.classList.remove('active'));
 }
 
-// ── HashTag 單選 ──
 function toggleTagFilter(btn) {
     const isActive = btn.classList.contains('active');
     document.querySelectorAll('.tag-pill').forEach(b=>b.classList.remove('active'));
-    if (!isActive) {
-        btn.classList.add('active');
-        selectedTagFilter = btn.dataset.tag;
-    } else {
-        selectedTagFilter = null;
-    }
+    if (!isActive) { btn.classList.add('active'); selectedTagFilter = btn.dataset.tag; }
+    else { selectedTagFilter = null; }
     saveState();
     applyFilters();
 }
@@ -782,12 +744,10 @@ function setStatusFilter(val,btn) {
 
 function applyFilters() {
     if (!activeFilter) { hideAllCards(); return; }
-
     document.querySelectorAll('.plant-card').forEach(card=>{
         const p=plantsData.find(pl=>pl.plant_id===card.dataset.id);
         if(!p){card.style.display='none';return;}
         const visV=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
-
         if (activeFilter==='keyword') {
             const kw=(document.getElementById('keyword-input')?.value||'').trim().toLowerCase();
             card.style.display=(!kw||p.name.toLowerCase().includes(kw))?'block':'none';
@@ -805,17 +765,13 @@ function applyFilters() {
             const checkedH=Array.from(document.querySelectorAll('#height-checkboxes input:checked')).map(cb=>{
                 const r=cb.value.split('-');return{min:parseInt(r[0]),max:parseInt(r[1])};
             });
-            // Show/hide hints
             const hS=document.getElementById('hint-space');
             const hSu=document.getElementById('hint-sun');
             const hH=document.getElementById('hint-height');
             if(hS)  hS.style.display  = spaceChecked.length===0?'block':'none';
             if(hSu) hSu.style.display = sunChecked.length===0?'block':'none';
             if(hH)  hH.style.display  = checkedH.length===0?'block':'none';
-            // If any group empty, hide all cards
-            if(spaceChecked.length===0||sunChecked.length===0||checkedH.length===0){
-                card.style.display='none'; return;
-            }
+            if(spaceChecked.length===0||sunChecked.length===0||checkedH.length===0){ card.style.display='none'; return; }
             const keyword=(document.getElementById('keyword-input')?.value||'').trim().toLowerCase();
             const matchSpace  = spaceChecked.some(s=>p.space.includes(s));
             const matchSun    = sunChecked.some(s=>p.sun.includes(s));
@@ -830,7 +786,6 @@ function applyFilters() {
     });
 }
 
-// ── Modal ──
 function openProduct(id) {
     document.getElementById(id+'Overlay').style.display='block';
     document.body.style.overflow='hidden';
@@ -844,17 +799,13 @@ function closeProduct(id) {
 window.addEventListener('popstate', e=>{
     document.querySelectorAll('.detail-overlay').forEach(o=>o.style.display='none');
     document.body.style.overflow='auto';
-    if(e.state?.modal){
-        const el=document.getElementById(e.state.modal+'Overlay');
-        if(el){el.style.display='block';document.body.style.overflow='hidden';}
-    }
+    if(e.state?.modal){ const el=document.getElementById(e.state.modal+'Overlay'); if(el){el.style.display='block';document.body.style.overflow='hidden';} }
 });
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').style.display='flex';}
 function closeLightbox(){document.getElementById('lightbox').style.display='none';}
 function shareProduct(id){navigator.clipboard.writeText(`${location.origin}${location.pathname}?id=${id}`).then(()=>showToast('連結已複製 🔗'));}
 function checkUrlParam(){const id=new URLSearchParams(location.search).get('id');if(id&&plantsData.find(p=>p.plant_id===id))openProduct(id);}
 
-// ── 購物車 ──
 function changeQty(pid,d){const el=document.getElementById(`qty-${pid}`);if(el)el.innerText=Math.max(1,parseInt(el.innerText)+d);}
 function addToCart(plantId,plantName){
     const v=selectedVariant[plantId]; if(!v) return;
@@ -881,10 +832,7 @@ function renderCartList(){
         const sk=key.replace(/'/g,"\\'");
         list.innerHTML+=`
         <div class="cart-item-row">
-            <div>
-                <div class="cart-item-name">${item.plantName}</div>
-                <div class="cart-item-sub">${item.potLabel}</div>
-            </div>
+            <div><div class="cart-item-name">${item.plantName}</div><div class="cart-item-sub">${item.potLabel}</div></div>
             <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
                 <div style="display:flex;align-items:center;background:white;border-radius:16px;padding:3px 10px;border:1px solid #ccc;gap:4px;">
                     <button onclick="changeCartQty('${sk}',-1)" style="border:none;background:none;cursor:pointer;font-size:1rem;color:#555;padding:0 4px;">-</button>
@@ -905,8 +853,6 @@ function changeCartQty(key,delta){
     saveState();updateCartCount();renderCartList();updatePriceSummary();
 }
 
-// ── 底盤加購（三種獨立）──
-
 function toggleAddon(type) {
     addonActive[type] = !addonActive[type];
     if (!addonActive[type]) addonQtys[type] = 1;
@@ -919,23 +865,16 @@ function toggleAddon(type) {
     togBtn.classList.toggle('active', addonActive[type]);
     togBtn.innerText = addonActive[type] ? '取消' : '加購';
     if (addonActive[type]) valEl.innerText = addonQtys[type];
-    saveState();
-    updatePriceSummary();
+    saveState(); updatePriceSummary();
 }
 function changeAddonQty(type, d) {
     addonQtys[type] = Math.max(1, addonQtys[type] + d);
     document.getElementById(`addon-val-${type}`).innerText = addonQtys[type];
-    saveState();
-    updatePriceSummary();
+    saveState(); updatePriceSummary();
 }
-function getAddonCost() {
-    return ADDON_KEYS.reduce((sum, t) => addonActive[t] ? sum + ADDONS[t].price * addonQtys[t] : sum, 0);
-}
-function getAddonLines() {
-    return ADDON_KEYS.filter(t=>addonActive[t]).map(t=>`底盤加購：${ADDONS[t].name} x${addonQtys[t]}  NT$${ADDONS[t].price*addonQtys[t]}`);
-}
+function getAddonCost() { return ADDON_KEYS.reduce((sum, t) => addonActive[t] ? sum + ADDONS[t].price * addonQtys[t] : sum, 0); }
+function getAddonLines() { return ADDON_KEYS.filter(t=>addonActive[t]).map(t=>`底盤加購：${ADDONS[t].name} x${addonQtys[t]}  NT$${ADDONS[t].price*addonQtys[t]}`); }
 
-// ── 地區 ──
 function selectRegion(btn){
     const fee=parseInt(btn.dataset.fee);
     if(fee===-1) return;
@@ -945,8 +884,7 @@ function selectRegion(btn){
     if(fee===5000) selectedRegion={fee:5000,label:btn.dataset.label,type:'conditional'};
     else if(type==='pickup') selectedRegion={fee:0,label:'自取',type:'pickup'};
     else selectedRegion={fee,label:btn.dataset.label,type:'normal'};
-    saveState();
-    updatePriceSummary();
+    saveState(); updatePriceSummary();
 }
 
 function updatePriceSummary(){
@@ -972,12 +910,9 @@ function updatePriceSummary(){
     sendBtn.disabled=!canSend||Object.keys(cart).length===0;
 }
 
-// ── 複製訊息 ──
 function openCopyModal(){
     const lines=['老闆你好 我要購買：'];
-    Object.values(cart).forEach(item=>{
-        lines.push(`${item.plantName}｜${item.potLabel} x${item.qty}  NT$${item.price*item.qty}`);
-    });
+    Object.values(cart).forEach(item=>{ lines.push(`${item.plantName}｜${item.potLabel} x${item.qty}  NT$${item.price*item.qty}`); });
     getAddonLines().forEach(l=>lines.push(l));
     if(selectedRegion){
         const sub=Object.values(cart).reduce((a,b)=>a+(b.price*b.qty),0);
@@ -1003,32 +938,21 @@ function copyText(){
     const text = document.getElementById('copy-textarea').value;
     const btn  = document.getElementById('copy-btn');
     const igBtn= document.getElementById('ig-link-btn');
-
-    // 方法一：現代瀏覽器
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).then(()=>{
-            btn.innerText='✅ 已複製！去私訊IG吧 🌿';
-            btn.classList.add('copied');
+            btn.innerText='✅ 已複製！去私訊IG吧 🌿'; btn.classList.add('copied');
             if(igBtn) igBtn.style.display='block';
         }).catch(()=>{ fallbackCopy(text, btn, igBtn); });
-    } else {
-        fallbackCopy(text, btn, igBtn);
-    }
+    } else { fallbackCopy(text, btn, igBtn); }
 }
-
 function fallbackCopy(text, btn, igBtn) {
-    // 方法二：舊版瀏覽器備用
     const ta = document.getElementById('copy-textarea');
-    ta.select();
-    ta.setSelectionRange(0, 99999);
+    ta.select(); ta.setSelectionRange(0, 99999);
     try {
         document.execCommand('copy');
-        btn.innerText='✅ 已複製！去私訊IG吧 🌿';
-        btn.classList.add('copied');
+        btn.innerText='✅ 已複製！去私訊IG吧 🌿'; btn.classList.add('copied');
         if(igBtn) igBtn.style.display='block';
-    } catch(e) {
-        btn.innerText='請手動長按文字複製';
-    }
+    } catch(e) { btn.innerText='請手動長按文字複製'; }
 }
 
 function showToast(msg){const t=document.getElementById('toast-notice');t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
