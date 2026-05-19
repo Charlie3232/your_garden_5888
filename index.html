@@ -19,6 +19,8 @@
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="小樣兒園藝 YourGarden | 職人植選">
     <meta name="twitter:description" content="來自職人手藝，搭配手工水泥盆器，特殊植物專車不封箱配送到家，台灣北中南均可配送。">
+    <link rel="icon" type="image/jpeg" href="https://img2.pixhost.to/images/8001/727979101_images-6.jpg">
+    <link rel="apple-touch-icon" href="https://img2.pixhost.to/images/8001/727979101_images-6.jpg">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -210,7 +212,21 @@
             .detail-left-gallery{flex:0 0 auto;width:100%;padding:15px;}
             .zoom-container{height:140px;}
             .detail-right{padding:25px;max-height:none;}
+            .site-footer { padding:40px 20px 30px; }
+            .footer-grid { grid-template-columns:1fr; gap:30px; text-align:center; }
         }
+
+        /* ── Footer ── */
+        .site-footer { background:rgba(0,0,0,0.06); border-top:1px solid rgba(0,0,0,0.08); padding:50px 40px 30px; margin-top:20px; }
+        .footer-grid { max-width:900px; margin:0 auto; display:grid; grid-template-columns:1fr 1fr 1fr; gap:40px; }
+        .footer-col h4 { font-size:0.82rem; font-weight:700; letter-spacing:2px; color:var(--accent-green); margin-bottom:16px; }
+        .footer-col p, .footer-col a { font-size:0.78rem; color:#777; line-height:2; display:block; text-decoration:none; letter-spacing:0.5px; }
+        .footer-col a:hover { color:var(--accent-green); }
+        .footer-ig { display:flex; align-items:center; gap:8px; font-size:0.78rem; color:#777; text-decoration:none; margin-top:4px; }
+        .footer-ig:hover { color:var(--accent-green); }
+        .footer-ig svg { width:18px; height:18px; fill:#777; flex-shrink:0; }
+        .footer-ig:hover svg { fill:var(--accent-green); }
+        .footer-bottom { max-width:900px; margin:30px auto 0; padding-top:20px; border-top:1px dashed rgba(0,0,0,0.1); text-align:center; font-size:0.72rem; color:#aaa; letter-spacing:1px; }
     </style>
 </head>
 <body>
@@ -433,6 +449,34 @@
 <div id="lightbox" onclick="closeLightbox()">
     <img id="lightbox-img" src="" alt="">
 </div>
+
+<footer class="site-footer">
+    <div class="footer-grid">
+        <div class="footer-col">
+            <h4>服務項目</h4>
+            <p>各式水泥風植栽</p>
+            <p>水泥盆器訂購</p>
+            <p>植物專車配送到家</p>
+        </div>
+        <div class="footer-col">
+            <h4>關於我們</h4>
+            <p>小樣兒園藝</p>
+            <p>乾隆化工貿易行</p>
+            <p>37563966</p>
+        </div>
+        <div class="footer-col">
+            <h4>聯絡我們</h4>
+            <a class="footer-ig" href="https://www.instagram.com/your_garden_5888/" target="_blank" rel="noopener">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+                @your_garden_5888
+            </a>
+            <a href="https://yourgarden5888.com/" style="font-size:0.72rem;color:#aaa;text-decoration:none;margin-top:4px;display:block;" target="_blank">https://yourgarden5888.com/</a>
+        </div>
+    </div>
+    <div class="footer-bottom">
+        © <span id="footer-year"></span> 小樣兒園藝 YourGarden｜All Rights Reserved
+    </div>
+</footer>
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9fn3CgrHVnpXi_umM9VLhedvKORRZtL21yk0Q7fOi_z50r2iCa0FeN7suT6gpE-CW/exec';
@@ -957,6 +1001,7 @@ function fallbackCopy(text, btn, igBtn) {
 
 function showToast(msg){const t=document.getElementById('toast-notice');t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
 function shufflePlants(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}}
+document.getElementById('footer-year').innerText=new Date().getFullYear();
 
 restoreState();
 loadPlants();
