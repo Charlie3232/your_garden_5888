@@ -338,9 +338,10 @@
     </div>
 </div>
 
-<p id="plant-hint" style="text-align:center;color:#aaa;font-size:0.72rem;letter-spacing:1px;margin:8px auto 6px;max-width:1200px;padding:0 20px;display:none;">
-    ↓ 往下滑動 檢閱所有植物 ・ 無特別標示皆為現貨狀態
-</p>
+<div id="plant-hint" style="display:none;text-align:center;margin:8px auto 6px;max-width:1200px;padding:0 20px;">
+    <span style="color:#aaa;font-size:0.72rem;letter-spacing:1px;">↓ 往下滑動 檢閱所有植物 ・ 無特別標示皆為現貨狀態</span>
+    <button onclick="copyFilterLink()" style="margin-left:10px;padding:3px 10px;border-radius:12px;border:1px solid rgba(0,0,0,0.15);background:rgba(255,255,255,0.6);font-family:inherit;font-size:0.68rem;color:#888;cursor:pointer;" title="複製篩選連結">🔗 複製篩選連結</button>
+</div>
 <main id="product-container">
     <div class="loading-msg">🌿 植物資料載入中…</div>
 </main>
@@ -529,7 +530,7 @@ function restoreUI() {
         activeFilter = savedFilter;
         document.getElementById(`ftbtn-${savedFilter}`)?.classList.add('active');
         document.getElementById(`filter-panel-${savedFilter}`)?.classList.add('active');
-        if (savedFilter==='detail'||savedFilter==='keyword') {
+        if (savedFilter==='detail'||savedFilter==='keyword'||savedFilter==='lazy') {
             const hint=document.getElementById('plant-hint');
             if(hint) hint.style.display='block';
         }
@@ -582,6 +583,7 @@ async function loadPlants() {
             setTimeout(()=>{ sn.classList.remove('show'); setTimeout(()=>sn.style.display='none', 350); }, 2200);
             restoreUI();
             checkUrlParam();
+            applyUrlParams();
         } else showLoadError();
     } catch {
         isLoading = false;
@@ -735,7 +737,7 @@ function switchFilter(type) {
         document.getElementById(`filter-panel-${t}`)?.classList.toggle('active', t===type);
     });
     const hint=document.getElementById('plant-hint');
-    if(hint) hint.style.display=(type==='detail'||type==='keyword')?'block':'none';
+    if(hint) hint.style.display=(type==='detail'||type==='keyword'||type==='lazy')?'block':'none';
     saveState();
     applyFilters();
     setTimeout(()=>{
@@ -987,6 +989,67 @@ function fallbackCopy(text, btn, igBtn) {
         btn.innerText='✅ 已複製！去私訊IG吧 🌿'; btn.classList.add('copied');
         if(igBtn) igBtn.style.display='block';
     } catch(e) { btn.innerText='請手動長按文字複製'; }
+}
+
+function copyFilterLink() {
+    const url = new URL(location.href);
+    url.search = '';
+    if (activeFilter === 'lazy' && selectedTagFilter) {
+        url.searchParams.set('tag', selectedTagFilter);
+    } else if (activeFilter === 'detail') {
+        const space = [];
+        if(document.getElementById('fs-indoor')?.checked)  space.push('室內');
+        if(document.getElementById('fs-outdoor')?.checked) space.push('室外');
+        const sun = [];
+        if(document.getElementById('fs-full')?.checked)   sun.push('全日照');
+        if(document.getElementById('fs-half')?.checked)   sun.push('半日照');
+        if(document.getElementById('fs-ind')?.checked)    sun.push('間接光');
+        if(document.getElementById('fs-bright')?.checked) sun.push('明亮處');
+        const height = Array.from(document.querySelectorAll('#height-checkboxes input:checked')).map(cb=>cb.value);
+        if(space.length)  url.searchParams.set('space', space.join(','));
+        if(sun.length)    url.searchParams.set('sun', sun.join(','));
+        if(height.length) url.searchParams.set('height', height.join(','));
+    } else if (activeFilter === 'keyword') {
+        const kw = document.getElementById('keyword-input')?.value?.trim();
+        if(kw) url.searchParams.set('kw', kw);
+    }
+    navigator.clipboard.writeText(url.toString()).then(()=>showToast('🔗 篩選連結已複製！'));
+}
+
+function applyUrlParams() {
+    const params = new URLSearchParams(location.search);
+    const tag    = params.get('tag');
+    const space  = params.get('space');
+    const sun    = params.get('sun');
+    const height = params.get('height');
+    const kw     = params.get('kw');
+    if (tag) {
+        switchFilter('lazy');
+        const btn = document.querySelector(`.tag-pill[data-tag="${tag}"]`);
+        if (btn) toggleTagFilter(btn);
+    } else if (space || sun || height) {
+        switchFilter('detail');
+        if (space) space.split(',').forEach(s => {
+            if(s==='室內') document.getElementById('fs-indoor').checked=true;
+            if(s==='室外') document.getElementById('fs-outdoor').checked=true;
+        });
+        if (sun) sun.split(',').forEach(s => {
+            if(s==='全日照') document.getElementById('fs-full').checked=true;
+            if(s==='半日照') document.getElementById('fs-half').checked=true;
+            if(s==='間接光') document.getElementById('fs-ind').checked=true;
+            if(s==='明亮處') document.getElementById('fs-bright').checked=true;
+        });
+        if (height) {
+            document.querySelectorAll('#height-checkboxes input').forEach(cb=>{
+                cb.checked = height.split(',').includes(cb.value);
+            });
+        }
+        applyFilters();
+    } else if (kw) {
+        switchFilter('keyword');
+        const input = document.getElementById('keyword-input');
+        if(input) { input.value = kw; applyFilters(); }
+    }
 }
 
 function showToast(msg){const t=document.getElementById('toast-notice');t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
