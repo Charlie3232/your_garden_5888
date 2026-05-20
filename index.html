@@ -738,6 +738,8 @@ function switchFilter(type) {
     });
     const hint=document.getElementById('plant-hint');
     if(hint) hint.style.display=(type==='detail'||type==='keyword'||type==='lazy')?'block':'none';
+    const copyBtn=document.querySelector('#plant-hint button');
+    if(copyBtn) copyBtn.style.display=(type==='keyword')?'none':'inline-block';
     saveState();
     applyFilters();
     setTimeout(()=>{
@@ -992,6 +994,7 @@ function fallbackCopy(text, btn, igBtn) {
 }
 
 function copyFilterLink() {
+    if (activeFilter === 'keyword') return;
     const url = new URL(location.href);
     url.search = '';
     if (activeFilter === 'lazy' && selectedTagFilter) {
