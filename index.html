@@ -686,13 +686,26 @@ function renderCards() {
         const isPreorder=vis.every(v=>v.status==='preorder');
         container.innerHTML+=`
         <div class="plant-card" data-id="${p.plant_id}" data-name="${p.name}" data-tags="${(p.tags||[]).join(',')}" onclick="openProduct('${p.plant_id}')">
-            <div class="img-mask"><img src="${p.card_img||''}" alt="${p.name}" loading="lazy"></div>
+            <div class="img-mask"><img src="${getCardImageSrc(p.card_img)}" alt="${p.name}" loading="lazy" decoding="async"></div>
             <div class="card-info">
                 <h2>${p.name}</h2>
                 ${isPreorder?'<div class="preorder-label">較長備貨（7-10天）</div>':''}
             </div>
         </div>`;
     });
+}
+
+function getCardImageSrc(src) {
+    const raw = String(src||'');
+    if (!raw) return '';
+    try {
+        const url = new URL(raw);
+        if (url.hostname === 'drive.google.com' && url.pathname.includes('/thumbnail')) {
+            url.searchParams.set('sz', 'w500');
+            return url.toString();
+        }
+    } catch(e) {}
+    return raw;
 }
 
 function renderModals() {
@@ -707,13 +720,12 @@ function renderModals() {
             const sel=v.variant_id===def?.variant_id?'selected':'';
             return `<button class="variant-btn ${cls} ${sel}" ${v.status==='soldout'?'disabled':''} data-vid="${v.variant_id}" onclick="selectVariant('${p.plant_id}','${v.variant_id}')">${v.pot_label}</button>`;
         }).join('');
-        const imgs=[...(def?.images||[])]; while(imgs.length<4) imgs.push(imgs[0]||'');
         box.innerHTML+=`
         <div id="${p.plant_id}Overlay" class="detail-overlay">
             <div class="detail-content">
                 <button class="close-btn" onclick="closeProduct('${p.plant_id}')">&times;</button>
                 <div class="detail-left-gallery" id="gallery-${p.plant_id}">
-                    ${imgs.map(src=>`<div class="zoom-container" onclick="openLightbox('${src}')"><img src="${src}" alt="${p.name}" loading="lazy"></div>`).join('')}
+                    ${[0,1,2,3].map(()=>`<div class="zoom-container"><img alt="${p.name}" loading="lazy" decoding="async"></div>`).join('')}
                 </div>
                 <div class="detail-right">
                     <h1>${p.name}</h1>
@@ -751,6 +763,18 @@ function renderVInfo(v) {
     return `盆器：${v.size_label}<br>含盆高度：約 ${v.height_min}-${v.height_max} cm`;
 }
 
+function setGalleryImages(plantId, images) {
+    const gallery = document.getElementById(`gallery-${plantId}`);
+    if (!gallery) return;
+    const imgs=[...(images||[])]; while(imgs.length<4) imgs.push(imgs[0]||'');
+    gallery.querySelectorAll('.zoom-container').forEach((el,i)=>{
+        const src = imgs[i] || '';
+        const img = el.querySelector('img');
+        if (img && img.src !== src) img.src = src;
+        el.onclick = src ? ()=>openLightbox(src) : null;
+    });
+}
+
 function selectVariant(plantId, variantId) {
     const p=plantsData.find(pl=>pl.plant_id===plantId);
     const v=p?.variants.find(vv=>vv.variant_id===variantId);
@@ -763,11 +787,7 @@ function selectVariant(plantId, variantId) {
     document.getElementById(`vprice-${plantId}`).innerText=`NT$ ${v.price}`;
     const preEl=document.getElementById(`vpreorder-${plantId}`);
     if(preEl) preEl.style.display=v.status==='preorder'?'block':'none';
-    const imgs=[...v.images]; while(imgs.length<4) imgs.push(imgs[0]||'');
-    document.getElementById(`gallery-${plantId}`).querySelectorAll('.zoom-container').forEach((el,i)=>{
-        el.querySelector('img').src=imgs[i]||'';
-        el.onclick=()=>openLightbox(imgs[i]||'');
-    });
+    setGalleryImages(plantId, v.images);
     const btn=document.getElementById(`addbtn-${plantId}`);
     btn.disabled=false;
     btn.innerText=v.status==='preorder'?'加入購物車試算（預購）':'加入購物車試算';
@@ -1001,6 +1021,8 @@ function applyFilters() {
 
 function openProduct(id) {
     openPlantId = id;                                   // ④
+    const v = selectedVariant[id];
+    if (v) setGalleryImages(id, v.images);
     document.getElementById(id+'Overlay').style.display='block';
     document.body.style.overflow='hidden';
     syncOpenProductUrl(id);
@@ -1017,7 +1039,7 @@ window.addEventListener('popstate', e=>{
     document.querySelectorAll('.detail-overlay').forEach(o=>o.style.display='none');
     document.body.style.overflow='auto';
     openPlantId = null;
-    if(e.state?.modal){ const el=document.getElementById(e.state.modal+'Overlay'); if(el){el.style.display='block';document.body.style.overflow='hidden'; openPlantId=e.state.modal;} }
+    if(e.state?.modal){ const el=document.getElementById(e.state.modal+'Overlay'); if(el){ const v=selectedVariant[e.state.modal]; if(v) setGalleryImages(e.state.modal, v.images); el.style.display='block';document.body.style.overflow='hidden'; openPlantId=e.state.modal;} }
     saveState();
 });
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').style.display='flex';}
