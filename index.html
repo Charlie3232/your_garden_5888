@@ -844,6 +844,34 @@ function getPlantShareUrl(id) {
     return url.toString();
 }
 
+function copyUrlToClipboard(url, successMsg) {
+    const text = String(url||'');
+    const fallback = () => {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        ta.style.top = '0';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        ta.setSelectionRange(0, ta.value.length);
+        let copied = false;
+        try { copied = document.execCommand('copy'); } catch(e) {}
+        document.body.removeChild(ta);
+        showToast(copied ? successMsg : '請長按網址手動複製');
+        if (!copied) window.prompt('請複製以下連結', text);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text)
+            .then(()=>showToast(successMsg))
+            .catch(fallback);
+    } else {
+        fallback();
+    }
+}
+
 function syncOpenProductUrl(id, replaceOnly=false) {
     const url = getPlantShareUrl(id);
     if (replaceOnly) history.replaceState({modal:id},'',url);
@@ -996,7 +1024,9 @@ function openLightbox(src){document.getElementById('lightbox-img').src=src;docum
 function closeLightbox(){document.getElementById('lightbox').style.display='none';}
 
 function shareProduct(id){
-    navigator.clipboard.writeText(getPlantShareUrl(id)).then(()=>showToast('連結已複製 🔗'));
+    const url = getPlantShareUrl(id);
+    history.replaceState({modal:id},'',url);
+    copyUrlToClipboard(url, '連結已複製 🔗');
 }
 /* ⑤ 進站時若網址帶 id (+vid)，自動打開並選到指定尺寸 */
 function checkUrlParam(){
@@ -1202,7 +1232,7 @@ function copyFilterLink() {
         if(sun.length)    url.searchParams.set('su', sun.join(','));
         if(height.length) url.searchParams.set('h', height.join(','));
     }
-    navigator.clipboard.writeText(url.toString()).then(()=>showToast('🔗 篩選連結已複製！'));
+    copyUrlToClipboard(url.toString(), '🔗 篩選連結已複製！');
 }
 
 /* ⑥ 解析篩選參數：新格式 sp/su/h 與舊格式 space/sun/height 皆相容 */
