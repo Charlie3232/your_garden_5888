@@ -586,10 +586,11 @@ function restoreUI() {
         hideAllCards();
     }
 
-    /* ④ 還原詳情頁：若網址沒有 ?id（分享連結優先），自動重新打開上次的植物 */
+    /* ④ 還原詳情頁：若網址沒有植物分享參數（分享連結優先），自動重新打開上次的植物 */
     try {
-        const hasUrlId = new URLSearchParams(location.search).get('id');
-        if (!hasUrlId) {
+        const params = new URLSearchParams(location.search);
+        const hasProductParam = params.get('p') || params.get('id');
+        if (!hasProductParam) {
             const savedPid = localStorage.getItem('yg_open_plant');
             if (savedPid && plantsData.find(p=>p.plant_id===savedPid)) {
                 const savedVid = localStorage.getItem('yg_open_variant');
@@ -770,6 +771,7 @@ function selectVariant(plantId, variantId) {
     const btn=document.getElementById(`addbtn-${plantId}`);
     btn.disabled=false;
     btn.innerText=v.status==='preorder'?'加入購物車試算（預購）':'加入購物車試算';
+    if (openPlantId === plantId) syncOpenProductUrl(plantId, true);
     saveState();   // ④ 記住選中的尺寸
 }
 
@@ -777,6 +779,75 @@ function hideAllCards() { document.querySelectorAll('.plant-card').forEach(c=>c.
 
 function normalizeTagKey(tag) {
     return String(tag||'').replace(/^#/, '').trim();
+}
+
+const TAG_CODE_MAP = {
+    '寵物友善':'pet',
+    '室內無光':'lowlight',
+    '西曬':'west',
+    '招財':'wealth',
+    '辦公室':'office',
+    '送禮推薦':'gift',
+    '室外陽台':'balcony',
+    '室內窗邊':'window',
+    '客廳擺飾':'living',
+    '新手友善':'beginner'
+};
+
+function shortHash(value) {
+    const str = String(value||'');
+    let h = 2166136261;
+    for (let i=0; i<str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+    }
+    return (h >>> 0).toString(36);
+}
+
+function tagToCode(tag) {
+    const key = normalizeTagKey(tag);
+    return TAG_CODE_MAP[key] || `t${shortHash(key)}`;
+}
+
+function tagFromCode(code) {
+    const value = String(code||'').trim();
+    const fixed = Object.keys(TAG_CODE_MAP).find(k => TAG_CODE_MAP[k] === value);
+    if (fixed) return fixed;
+    const allTags = Array.from(document.querySelectorAll('.tag-pill')).map(b => normalizeTagKey(b.dataset.tag || b.textContent));
+    return allTags.find(t => tagToCode(t) === value) || normalizeTagKey(value);
+}
+
+function plantToCode(plantId) {
+    return `p${shortHash(plantId)}`;
+}
+
+function variantToCode(variantId) {
+    return `v${shortHash(variantId)}`;
+}
+
+function findPlantByParam(value) {
+    const raw = String(value||'');
+    return plantsData.find(p => plantToCode(p.plant_id) === raw || p.plant_id === raw);
+}
+
+function findVariantByParam(plant, value) {
+    const raw = String(value||'');
+    return plant?.variants.find(v => variantToCode(v.variant_id) === raw || v.variant_id === raw);
+}
+
+function getPlantShareUrl(id) {
+    const plant = plantsData.find(p=>p.plant_id===id);
+    const v = selectedVariant[id];
+    const url = new URL(`${location.origin}${location.pathname}`);
+    url.searchParams.set('p', plantToCode(plant?.plant_id || id));
+    if (v?.variant_id) url.searchParams.set('v', variantToCode(v.variant_id));
+    return url.toString();
+}
+
+function syncOpenProductUrl(id, replaceOnly=false) {
+    const url = getPlantShareUrl(id);
+    if (replaceOnly) history.replaceState({modal:id},'',url);
+    else history.pushState({modal:id},'',url);
 }
 
 function renderTagPills(tags) {
@@ -904,7 +975,7 @@ function openProduct(id) {
     openPlantId = id;                                   // ④
     document.getElementById(id+'Overlay').style.display='block';
     document.body.style.overflow='hidden';
-    history.pushState({modal:id},'',`?id=${encodeParam(id)}`);
+    syncOpenProductUrl(id);
     saveState();                                        // ④
 }
 function closeProduct(id) {
@@ -924,25 +995,19 @@ window.addEventListener('popstate', e=>{
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').style.display='flex';}
 function closeLightbox(){document.getElementById('lightbox').style.display='none';}
 
-/* ⑤ 分享連結帶上選中的尺寸 vid */
-function encodeParam(value){
-    return encodeURIComponent(String(value||''));
-}
-
 function shareProduct(id){
-    const v=selectedVariant[id];
-    const vid=(v&&v.variant_id)?v.variant_id:'';
-    const url=`${location.origin}${location.pathname}?id=${encodeParam(id)}${vid?`&vid=${encodeParam(vid)}`:''}`;
-    navigator.clipboard.writeText(url).then(()=>showToast('連結已複製 🔗'));
+    navigator.clipboard.writeText(getPlantShareUrl(id)).then(()=>showToast('連結已複製 🔗'));
 }
 /* ⑤ 進站時若網址帶 id (+vid)，自動打開並選到指定尺寸 */
 function checkUrlParam(){
     const params=new URLSearchParams(location.search);
-    const id=params.get('id');
-    const vid=params.get('vid');
-    if(id&&plantsData.find(p=>p.plant_id===id)){
-        if(vid) selectVariant(id, vid);
-        openProduct(id);
+    const plantParam=params.get('p') || params.get('id');
+    const variantParam=params.get('v') || params.get('vid');
+    const plant=findPlantByParam(plantParam);
+    if(plant){
+        const variant=findVariantByParam(plant, variantParam);
+        if(variant) selectVariant(plant.plant_id, variant.variant_id);
+        openProduct(plant.plant_id);
     }
 }
 
@@ -1122,7 +1187,7 @@ function copyFilterLink() {
     const url = new URL(location.href);
     url.search = '';
     if (activeFilter === 'lazy' && selectedTagFilter) {
-        url.searchParams.set('tag', normalizeTagKey(selectedTagFilter));
+        url.searchParams.set('tag', tagToCode(selectedTagFilter));
     } else if (activeFilter === 'detail') {
         const space = [];
         if(document.getElementById('fs-indoor')?.checked)  space.push('in');
@@ -1154,7 +1219,7 @@ function applyUrlParams() {
 
     if (tag) {
         switchFilter('lazy');
-        const normalizedTag = normalizeTagKey(tag);
+        const normalizedTag = tagFromCode(tag);
         const btn = Array.from(document.querySelectorAll('.tag-pill')).find(b => normalizeTagKey(b.dataset.tag) === normalizedTag);
         if (btn) toggleTagFilter(btn);
     } else if (spRaw || suRaw || hRaw) {
