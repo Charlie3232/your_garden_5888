@@ -472,6 +472,12 @@
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz9fn3CgrHVnpXi_umM9VLhedvKORRZtL21yk0Q7fOi_z50r2iCa0FeN7suT6gpE-CW/exec';
 
+/* ────────── ①② 植物資料快取設定 ────────── */
+const CACHE_TTL    = 5 * 60 * 60 * 1000; // 5 小時
+const CACHE_PLANTS = 'yg_plants_cache';
+const CACHE_TAGS   = 'yg_tags_cache';
+const CACHE_TIME   = 'yg_plants_cache_time';
+
 const ADDONS = {
     cement: { name:'水泥底盤', price:149 },
     clear:  { name:'透明底盤', price:20  },
@@ -486,20 +492,31 @@ let selectedTagFilter   = null;
 let selectedVariant     = {};
 let selectedRegion      = null;
 let activeFilter        = null;
+let openPlantId         = null;   // ④ 目前打開的植物頁
 
 const ADDON_KEYS = ['cement','clear','roller'];
 let addonQtys   = { cement:1, clear:1, roller:1 };
 let addonActive = { cement:false, clear:false, roller:false };
 
 function saveState() {
+    // 購物車 / 加購 / 地區 / 篩選 → sessionStorage
     try {
-        if (typeof sessionStorage === 'undefined') return;
-        sessionStorage.setItem('yg_cart', JSON.stringify(cart||{}));
-        sessionStorage.setItem('yg_addon_active', JSON.stringify(addonActive||{}));
-        sessionStorage.setItem('yg_addon_qtys', JSON.stringify(addonQtys||{}));
-        sessionStorage.setItem('yg_region', JSON.stringify(selectedRegion||null));
-        sessionStorage.setItem('yg_filter', activeFilter||'');
-        sessionStorage.setItem('yg_tag', selectedTagFilter||'');
+        if (typeof sessionStorage !== 'undefined') {
+            sessionStorage.setItem('yg_cart', JSON.stringify(cart||{}));
+            sessionStorage.setItem('yg_addon_active', JSON.stringify(addonActive||{}));
+            sessionStorage.setItem('yg_addon_qtys', JSON.stringify(addonQtys||{}));
+            sessionStorage.setItem('yg_region', JSON.stringify(selectedRegion||null));
+            sessionStorage.setItem('yg_filter', activeFilter||'');
+            sessionStorage.setItem('yg_tag', selectedTagFilter||'');
+        }
+    } catch(e){}
+    // ④ 詳情頁狀態（目前打開的植物 + 選中尺寸）→ localStorage
+    try {
+        if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('yg_open_plant', openPlantId || '');
+            const v = openPlantId ? selectedVariant[openPlantId] : null;
+            localStorage.setItem('yg_open_variant', (v && v.variant_id) ? v.variant_id : '');
+        }
     } catch(e){}
 }
 function restoreState() {
@@ -513,6 +530,30 @@ function restoreState() {
         selectedRegion = null;
     } catch(e){}
 }
+
+/* ────────── ①② 快取存取 ────────── */
+function getCachedPlants() {
+    try {
+        const t = parseInt(sessionStorage.getItem(CACHE_TIME) || '0', 10);
+        if (!t || (Date.now() - t) > CACHE_TTL) return null;   // 超過 5 小時視為過期
+        const raw = sessionStorage.getItem(CACHE_PLANTS);
+        if (!raw) return null;
+        const arr = JSON.parse(raw);
+        return (Array.isArray(arr) && arr.length) ? arr : null;
+    } catch(e){ return null; }
+}
+function getCachedTags() {
+    try { const r = sessionStorage.getItem(CACHE_TAGS); return r ? JSON.parse(r) : null; }
+    catch(e){ return null; }
+}
+function setCache(plants, tags) {
+    try {
+        sessionStorage.setItem(CACHE_PLANTS, JSON.stringify(plants||[]));
+        if (tags) sessionStorage.setItem(CACHE_TAGS, JSON.stringify(tags));
+        sessionStorage.setItem(CACHE_TIME, String(Date.now()));
+    } catch(e){}
+}
+
 function restoreUI() {
     updateCartCount();
     ADDON_KEYS.forEach(type => {
@@ -544,9 +585,37 @@ function restoreUI() {
     } else {
         hideAllCards();
     }
+
+    /* ④ 還原詳情頁：若網址沒有 ?id（分享連結優先），自動重新打開上次的植物 */
+    try {
+        const hasUrlId = new URLSearchParams(location.search).get('id');
+        if (!hasUrlId) {
+            const savedPid = localStorage.getItem('yg_open_plant');
+            if (savedPid && plantsData.find(p=>p.plant_id===savedPid)) {
+                const savedVid = localStorage.getItem('yg_open_variant');
+                if (savedVid) selectVariant(savedPid, savedVid);
+                openProduct(savedPid);
+            }
+        }
+    } catch(e){}
 }
 
 async function loadPlants() {
+    /* ① 有有效快取（5 小時內）→ 直接用快取還原，不重新 fetch、不跳 loading 框 */
+    const cached = getCachedPlants();
+    if (cached) {
+        plantsData = cached;
+        const ctags = getCachedTags();
+        if (ctags && ctags.length) renderTagPills(ctags);
+        renderCards();
+        renderModals();
+        isLoading = false;
+        restoreUI();
+        checkUrlParam();
+        applyUrlParams();
+        return;
+    }
+
     document.getElementById('product-container').innerHTML='<div class="loading-msg">🌿 載入中 Loading...</div>';
     ['ftbtn-detail','ftbtn-lazy','ftbtn-keyword'].forEach(id=>{
         const b=document.getElementById(id);
@@ -556,10 +625,11 @@ async function loadPlants() {
     ln.style.display='block';
     setTimeout(()=>ln.classList.add('show'),50);
     fetch(`${SCRIPT_URL}?action=trackVisit`).catch(()=>{});
+    let loadedTags = null;
     try {
         const tagRes  = await fetch(`${SCRIPT_URL}?action=getTags`);
         const tagJson = await tagRes.json();
-        if (tagJson.success && tagJson.tags.length) renderTagPills(tagJson.tags);
+        if (tagJson.success && tagJson.tags.length) { loadedTags = tagJson.tags; renderTagPills(tagJson.tags); }
     } catch(e){}
     try {
         const res  = await fetch(`${SCRIPT_URL}?action=getPlants`);
@@ -567,6 +637,7 @@ async function loadPlants() {
         if (json.success) {
             plantsData = json.plants;
             shufflePlants(plantsData);
+            setCache(plantsData, loadedTags);   // ①② 寫入快取（含時間戳）
             renderCards();
             renderModals();
             isLoading = false;
@@ -699,15 +770,20 @@ function selectVariant(plantId, variantId) {
     const btn=document.getElementById(`addbtn-${plantId}`);
     btn.disabled=false;
     btn.innerText=v.status==='preorder'?'加入購物車試算（預購）':'加入購物車試算';
+    saveState();   // ④ 記住選中的尺寸
 }
 
 function hideAllCards() { document.querySelectorAll('.plant-card').forEach(c=>c.style.display='none'); }
+
+function normalizeTagKey(tag) {
+    return String(tag||'').replace(/^#/, '').trim();
+}
 
 function renderTagPills(tags) {
     const container = document.getElementById('tag-pills-container');
     if (!container) return;
     container.innerHTML = tags.map(t =>
-        `<button class="tag-pill" data-tag="${t}" onclick="toggleTagFilter(this)">${t}</button>`
+        `<button class="tag-pill" data-tag="${normalizeTagKey(t)}" onclick="toggleTagFilter(this)">${t}</button>`
     ).join('');
 }
 
@@ -819,30 +895,56 @@ function applyFilters() {
             card.style.display=(matchSpace&&matchSun&&matchH&&matchStatus&&matchKw)?'block':'none';
         } else if (activeFilter==='lazy') {
             if(!selectedTagFilter){card.style.display='none';return;}
-            card.style.display=(p.tags||[]).includes(selectedTagFilter)?'block':'none';
+            card.style.display=(p.tags||[]).some(t=>normalizeTagKey(t)===normalizeTagKey(selectedTagFilter))?'block':'none';
         }
     });
 }
 
 function openProduct(id) {
+    openPlantId = id;                                   // ④
     document.getElementById(id+'Overlay').style.display='block';
     document.body.style.overflow='hidden';
-    history.pushState({modal:id},'',`?id=${id}`);
+    history.pushState({modal:id},'',`?id=${encodeParam(id)}`);
+    saveState();                                        // ④
 }
 function closeProduct(id) {
     document.getElementById(id+'Overlay').style.display='none';
     document.body.style.overflow='auto';
+    openPlantId = null;                                 // ④
     history.pushState(null,'',window.location.pathname);
+    saveState();                                        // ④
 }
 window.addEventListener('popstate', e=>{
     document.querySelectorAll('.detail-overlay').forEach(o=>o.style.display='none');
     document.body.style.overflow='auto';
-    if(e.state?.modal){ const el=document.getElementById(e.state.modal+'Overlay'); if(el){el.style.display='block';document.body.style.overflow='hidden';} }
+    openPlantId = null;
+    if(e.state?.modal){ const el=document.getElementById(e.state.modal+'Overlay'); if(el){el.style.display='block';document.body.style.overflow='hidden'; openPlantId=e.state.modal;} }
+    saveState();
 });
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').style.display='flex';}
 function closeLightbox(){document.getElementById('lightbox').style.display='none';}
-function shareProduct(id){navigator.clipboard.writeText(`${location.origin}${location.pathname}?id=${id}`).then(()=>showToast('連結已複製 🔗'));}
-function checkUrlParam(){const id=new URLSearchParams(location.search).get('id');if(id&&plantsData.find(p=>p.plant_id===id))openProduct(id);}
+
+/* ⑤ 分享連結帶上選中的尺寸 vid */
+function encodeParam(value){
+    return encodeURIComponent(String(value||''));
+}
+
+function shareProduct(id){
+    const v=selectedVariant[id];
+    const vid=(v&&v.variant_id)?v.variant_id:'';
+    const url=`${location.origin}${location.pathname}?id=${encodeParam(id)}${vid?`&vid=${encodeParam(vid)}`:''}`;
+    navigator.clipboard.writeText(url).then(()=>showToast('連結已複製 🔗'));
+}
+/* ⑤ 進站時若網址帶 id (+vid)，自動打開並選到指定尺寸 */
+function checkUrlParam(){
+    const params=new URLSearchParams(location.search);
+    const id=params.get('id');
+    const vid=params.get('vid');
+    if(id&&plantsData.find(p=>p.plant_id===id)){
+        if(vid) selectVariant(id, vid);
+        openProduct(id);
+    }
+}
 
 function changeQty(pid,d){const el=document.getElementById(`qty-${pid}`);if(el)el.innerText=Math.max(1,parseInt(el.innerText)+d);}
 function addToCart(plantId,plantName){
@@ -980,6 +1082,7 @@ function copyText(){
         navigator.clipboard.writeText(text).then(()=>{
             btn.innerText='✅ 已複製！去私訊IG吧 🌿'; btn.classList.add('copied');
             if(igBtn) igBtn.style.display='block';
+            clearOrderAfterCopy();   // 已複製 → 清空購物車，不再保留
         }).catch(()=>{ fallbackCopy(text, btn, igBtn); });
     } else { fallbackCopy(text, btn, igBtn); }
 }
@@ -990,62 +1093,77 @@ function fallbackCopy(text, btn, igBtn) {
         document.execCommand('copy');
         btn.innerText='✅ 已複製！去私訊IG吧 🌿'; btn.classList.add('copied');
         if(igBtn) igBtn.style.display='block';
+        clearOrderAfterCopy();   // 已複製 → 清空購物車，不再保留
     } catch(e) { btn.innerText='請手動長按文字複製'; }
 }
 
+/* 已按複製送出後：清空購物車 / 加購 / 地區（複製視窗仍保留文字可貼上） */
+function clearOrderAfterCopy() {
+    cart = {};
+    addonActive = { cement:false, clear:false, roller:false };
+    addonQtys   = { cement:1, clear:1, roller:1 };
+    selectedRegion = null;
+    saveState();
+    ADDON_KEYS.forEach(type=>{
+        document.getElementById(`addon-${type}`)?.classList.remove('selected');
+        const q=document.getElementById(`addon-qty-${type}`); if(q) q.style.display='none';
+        const tog=document.getElementById(`addon-tog-${type}`); if(tog){ tog.classList.remove('active'); tog.innerText='加購'; }
+        const val=document.getElementById(`addon-val-${type}`); if(val) val.innerText='1';
+    });
+    document.querySelectorAll('.region-btn').forEach(b=>b.classList.remove('selected'));
+    updateCartCount();
+    renderCartList();
+    updatePriceSummary();
+}
+
+/* ⑥ 篩選連結改用英數短碼（去除中文亂碼）：sp / su / h */
 function copyFilterLink() {
     if (activeFilter === 'keyword') return;
     const url = new URL(location.href);
     url.search = '';
     if (activeFilter === 'lazy' && selectedTagFilter) {
-        url.searchParams.set('tag', selectedTagFilter);
+        url.searchParams.set('tag', normalizeTagKey(selectedTagFilter));
     } else if (activeFilter === 'detail') {
         const space = [];
-        if(document.getElementById('fs-indoor')?.checked)  space.push('室內');
-        if(document.getElementById('fs-outdoor')?.checked) space.push('室外');
+        if(document.getElementById('fs-indoor')?.checked)  space.push('in');
+        if(document.getElementById('fs-outdoor')?.checked) space.push('out');
         const sun = [];
-        if(document.getElementById('fs-full')?.checked)   sun.push('全日照');
-        if(document.getElementById('fs-half')?.checked)   sun.push('半日照');
-        if(document.getElementById('fs-ind')?.checked)    sun.push('間接光');
-        if(document.getElementById('fs-bright')?.checked) sun.push('明亮處');
+        if(document.getElementById('fs-full')?.checked)   sun.push('full');
+        if(document.getElementById('fs-half')?.checked)   sun.push('half');
+        if(document.getElementById('fs-ind')?.checked)    sun.push('ind');
+        if(document.getElementById('fs-bright')?.checked) sun.push('bright');
         const height = Array.from(document.querySelectorAll('#height-checkboxes input:checked')).map(cb=>cb.value);
-        if(space.length)  url.searchParams.set('space', space.join(','));
-        if(sun.length)    url.searchParams.set('sun', sun.join(','));
-        if(height.length) url.searchParams.set('height', height.join(','));
-    } else if (activeFilter === 'keyword') {
-        const kw = document.getElementById('keyword-input')?.value?.trim();
-        if(kw) url.searchParams.set('kw', kw);
+        if(space.length)  url.searchParams.set('sp', space.join(','));
+        if(sun.length)    url.searchParams.set('su', sun.join(','));
+        if(height.length) url.searchParams.set('h', height.join(','));
     }
     navigator.clipboard.writeText(url.toString()).then(()=>showToast('🔗 篩選連結已複製！'));
 }
 
+/* ⑥ 解析篩選參數：新格式 sp/su/h 與舊格式 space/sun/height 皆相容 */
 function applyUrlParams() {
     const params = new URLSearchParams(location.search);
     const tag    = params.get('tag');
-    const space  = params.get('space');
-    const sun    = params.get('sun');
-    const height = params.get('height');
+    const spRaw  = params.get('sp') || params.get('space');
+    const suRaw  = params.get('su') || params.get('sun');
+    const hRaw   = params.get('h')  || params.get('height');
     const kw     = params.get('kw');
+
+    const spaceMap = { 'in':'fs-indoor','out':'fs-outdoor','室內':'fs-indoor','室外':'fs-outdoor' };
+    const sunMap   = { 'full':'fs-full','half':'fs-half','ind':'fs-ind','bright':'fs-bright','全日照':'fs-full','半日照':'fs-half','間接光':'fs-ind','明亮處':'fs-bright' };
+
     if (tag) {
         switchFilter('lazy');
-        const btn = document.querySelector(`.tag-pill[data-tag="${tag}"]`);
+        const normalizedTag = normalizeTagKey(tag);
+        const btn = Array.from(document.querySelectorAll('.tag-pill')).find(b => normalizeTagKey(b.dataset.tag) === normalizedTag);
         if (btn) toggleTagFilter(btn);
-    } else if (space || sun || height) {
+    } else if (spRaw || suRaw || hRaw) {
         switchFilter('detail');
-        if (space) space.split(',').forEach(s => {
-            if(s==='室內') document.getElementById('fs-indoor').checked=true;
-            if(s==='室外') document.getElementById('fs-outdoor').checked=true;
-        });
-        if (sun) sun.split(',').forEach(s => {
-            if(s==='全日照') document.getElementById('fs-full').checked=true;
-            if(s==='半日照') document.getElementById('fs-half').checked=true;
-            if(s==='間接光') document.getElementById('fs-ind').checked=true;
-            if(s==='明亮處') document.getElementById('fs-bright').checked=true;
-        });
-        if (height) {
-            document.querySelectorAll('#height-checkboxes input').forEach(cb=>{
-                cb.checked = height.split(',').includes(cb.value);
-            });
+        if (spRaw) spRaw.split(',').forEach(s => { const id=spaceMap[s]; const el=id&&document.getElementById(id); if(el) el.checked=true; });
+        if (suRaw) suRaw.split(',').forEach(s => { const id=sunMap[s];   const el=id&&document.getElementById(id); if(el) el.checked=true; });
+        if (hRaw) {
+            const hs = hRaw.split(',');
+            document.querySelectorAll('#height-checkboxes input').forEach(cb=>{ cb.checked = hs.includes(cb.value); });
         }
         applyFilters();
     } else if (kw) {
