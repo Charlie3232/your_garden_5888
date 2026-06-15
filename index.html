@@ -190,6 +190,9 @@
         #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9000; align-items:center; justify-content:center; cursor:zoom-out; }
         #lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:10px; }
         #toast-notice { display:none; position:fixed; top:24px; left:50%; transform:translateX(-50%); background:var(--accent-green); color:white; padding:13px 24px; border-radius:30px; z-index:5000; font-size:0.88rem; white-space:pre-line; line-height:1.7; max-width:calc(100vw - 32px); text-align:center; }
+        #toast-notice.toast-modal { top:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(78,90,77,0.92); padding:26px 36px; border-radius:24px; font-size:0.82rem; line-height:2; backdrop-filter:blur(8px); opacity:0; width:max-content; max-width:85vw; transition:all 0.3s ease; }
+        #toast-notice.toast-modal.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
+        .toast-highlight { color:#e0aaa8; font-weight:700; }
 
         /* ── 載入中/完成提示 ── */
         #loading-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(130,125,120,0.88); color:white; padding:26px 36px; border-radius:24px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(8px); pointer-events:none; line-height:2; transition:all 0.3s ease; opacity:0; width:max-content; max-width:85vw; }
@@ -1117,7 +1120,7 @@ const CEMENT_ALLOWED_POTS = [
     '12*12圓筒水泥盆',
     '14*14水滴水泥盆'
 ];
-const CEMENT_LIMIT_NOTICE = '因水泥底盤承重限制,\n僅適用 10*10水滴水泥盆、12*12圓筒水泥盆、14*14水滴水泥盆。\n其他尺寸請改用透明底盤或滾輪底盤~~ 🌿';
+const CEMENT_LIMIT_NOTICE = '因水泥底盤承重限制,<br><span class="toast-highlight">僅適用 10*10水滴水泥盆、12*12圓筒水泥盆、14*14水滴水泥盆。</span><br>其他尺寸請改用透明底盤或滾輪底盤~~ 🌿';
 
 function normalizePotLabel(label) {
     return String(label||'').replace(/\s+/g,'').replace(/[xX×]/g,'*');
@@ -1147,9 +1150,13 @@ function syncCementAddonLimit() {
     if (valEl) valEl.innerText = addonQtys.cement;
 }
 
+function showCementLimitNotice() {
+    showToast(CEMENT_LIMIT_NOTICE, { html:true, modal:true, duration:2000 });
+}
+
 function toggleAddon(type) {
     if (type === 'cement' && !addonActive.cement && getCementEligibleQty() <= 0) {
-        showToast(CEMENT_LIMIT_NOTICE);
+        showCementLimitNotice();
         return;
     }
     addonActive[type] = !addonActive[type];
@@ -1167,7 +1174,7 @@ function toggleAddon(type) {
 }
 function changeAddonQty(type, d) {
     if (type === 'cement' && d > 0 && addonQtys.cement >= getCementEligibleQty()) {
-        showToast(CEMENT_LIMIT_NOTICE);
+        showCementLimitNotice();
         return;
     }
     addonQtys[type] = Math.max(1, addonQtys[type] + d);
@@ -1335,7 +1342,24 @@ function applyUrlParams() {
     }
 }
 
-function showToast(msg){const t=document.getElementById('toast-notice');t.innerText=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
+function showToast(msg, opts){
+    const options = (opts && typeof opts === 'object') ? opts : {};
+    const t=document.getElementById('toast-notice');
+    clearTimeout(t._toastTimer);
+    t.className = options.modal ? 'toast-modal' : '';
+    if (options.html) t.innerHTML=msg;
+    else t.innerText=msg;
+    t.style.display='block';
+    if (options.modal) setTimeout(()=>t.classList.add('show'), 20);
+    t._toastTimer=setTimeout(()=>{
+        if (options.modal) {
+            t.classList.remove('show');
+            setTimeout(()=>{ t.style.display='none'; t.className=''; }, 300);
+        } else {
+            t.style.display='none';
+        }
+    }, options.duration || 2500);
+}
 function shufflePlants(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}}
 document.getElementById('footer-year').innerText=new Date().getFullYear();
 
