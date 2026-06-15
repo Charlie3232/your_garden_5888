@@ -189,18 +189,13 @@
 
         #lightbox { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:9000; align-items:center; justify-content:center; cursor:zoom-out; }
         #lightbox img { max-width:90vw; max-height:90vh; object-fit:contain; border-radius:10px; }
-        #toast-notice { display:none; position:fixed; top:24px; left:50%; transform:translateX(-50%); background:var(--dark-pot); color:white; padding:13px 24px; border-radius:30px; z-index:5000; font-size:0.88rem; white-space:nowrap; }
+        #toast-notice { display:none; position:fixed; top:24px; left:50%; transform:translateX(-50%); background:var(--accent-green); color:white; padding:13px 24px; border-radius:30px; z-index:5000; font-size:0.88rem; white-space:pre-line; line-height:1.7; max-width:calc(100vw - 32px); text-align:center; }
 
         /* ── 載入中/完成提示 ── */
         #loading-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(130,125,120,0.88); color:white; padding:26px 36px; border-radius:24px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(8px); pointer-events:none; line-height:2; transition:all 0.3s ease; opacity:0; width:max-content; max-width:85vw; }
         #loading-notice.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
         #success-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(78,90,77,0.92); color:white; padding:26px 36px; border-radius:24px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(8px); pointer-events:none; line-height:2; transition:all 0.3s ease; opacity:0; width:max-content; max-width:85vw; }
         #success-notice.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
-
-        /* ── 水泥底盤限制提醒（墨綠底·三行）── */
-        #addon-alert { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.85); background:rgba(78,90,77,0.94); color:white; padding:22px 26px; border-radius:20px; z-index:6000; font-family:'Noto Serif TC',serif; font-size:0.9rem; text-align:center; line-height:2; backdrop-filter:blur(8px); pointer-events:none; opacity:0; transition:all 0.25s ease; width:max-content; max-width:90vw; box-shadow:0 8px 30px rgba(0,0,0,0.32); }
-        #addon-alert.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
-        #addon-alert b { color:#d98e7e; font-weight:700; }
 
         /* 動態點點 */
         .dot-loading { display:inline-block; }
@@ -357,12 +352,6 @@
 </button>
 <div id="toast-notice"></div>
 
-<div id="addon-alert">
-    因水泥底盤承重限制，<br>
-    僅適用 <b>10*10水滴水泥盆</b>、<b>12*12圓筒水泥盆</b>、<b>14*14水滴水泥盆</b>。<br>
-    其他尺寸請改用透明底盤或滾輪底盤~~ 🌱
-</div>
-
 <div id="loading-notice">
     <span style="font-size:1.1rem;">🌿 載入中<span class="dot-loading"><span>.</span><span>.</span><span>.</span></span></span><br>
     <span style="font-size:0.82rem;opacity:0.85;">植物們正在趕來~~🥺</span><br>
@@ -495,30 +484,6 @@ const ADDONS = {
     roller: { name:'滾輪底盤', price:250 },
 };
 
-/* 水泥底盤承重限制：僅這三種盆可用 */
-const CEMENT_COMPATIBLE = ['10*10水滴水泥盆', '12*12圓筒水泥盆', '14*14水滴水泥盆'];
-
-/* 購物車內「相容水泥盆」的總數量（qty 加總） */
-function cementCompatibleCount() {
-    return Object.values(cart).reduce((sum, item) =>
-        CEMENT_COMPATIBLE.some(pot => String(item.potLabel||'').includes(pot)) ? sum + item.qty : sum
-    , 0);
-}
-
-/* 墨綠三行提醒框 */
-let _addonAlertTimer = null;
-function showAddonAlert() {
-    const el = document.getElementById('addon-alert');
-    if (!el) return;
-    el.style.display = 'block';
-    requestAnimationFrame(()=>el.classList.add('show'));
-    clearTimeout(_addonAlertTimer);
-    _addonAlertTimer = setTimeout(()=>{
-        el.classList.remove('show');
-        setTimeout(()=>el.style.display='none', 300);
-    }, 3500);
-}
-
 let plantsData = [];
 let isLoading  = true;
 let cart = {};
@@ -600,6 +565,7 @@ function restoreUI() {
             tog.classList.add('active'); tog.innerText = '取消';
         }
     });
+    syncCementAddonLimit();
     const savedFilter = sessionStorage.getItem('yg_filter');
     const savedTag    = sessionStorage.getItem('yg_tag');
     if (savedFilter) {
@@ -1137,18 +1103,53 @@ function renderCartList(){
         </div>`;
     });
 }
-function removeFromCart(key){delete cart[key];saveState();updateCartCount();renderCartList();updatePriceSummary();}
+function removeFromCart(key){delete cart[key];syncCementAddonLimit();saveState();updateCartCount();renderCartList();updatePriceSummary();}
 function changeCartQty(key,delta){
     if(!cart[key])return;
     cart[key].qty=cart[key].qty+delta;
     if(cart[key].qty<=0){ delete cart[key]; }
+    syncCementAddonLimit();
     saveState();updateCartCount();renderCartList();updatePriceSummary();
 }
 
+const CEMENT_ALLOWED_POTS = [
+    '10*10水滴水泥盆',
+    '12*12圓筒水泥盆',
+    '14*14水滴水泥盆'
+];
+const CEMENT_LIMIT_NOTICE = '因水泥底盤承重限制,\n僅適用 10*10水滴水泥盆、12*12圓筒水泥盆、14*14水滴水泥盆。\n其他尺寸請改用透明底盤或滾輪底盤~~ 🌿';
+
+function normalizePotLabel(label) {
+    return String(label||'').replace(/\s+/g,'').replace(/[xX×]/g,'*');
+}
+
+function getCementEligibleQty() {
+    return Object.values(cart).reduce((sum, item) => {
+        return CEMENT_ALLOWED_POTS.includes(normalizePotLabel(item.potLabel)) ? sum + item.qty : sum;
+    }, 0);
+}
+
+function syncCementAddonLimit() {
+    const limit = getCementEligibleQty();
+    if (limit <= 0) {
+        addonActive.cement = false;
+        addonQtys.cement = 1;
+    } else if (addonActive.cement && addonQtys.cement > limit) {
+        addonQtys.cement = limit;
+    }
+    const card = document.getElementById('addon-cement');
+    const qtyDiv = document.getElementById('addon-qty-cement');
+    const togBtn = document.getElementById('addon-tog-cement');
+    const valEl = document.getElementById('addon-val-cement');
+    if (card) card.classList.toggle('selected', addonActive.cement);
+    if (qtyDiv) qtyDiv.style.display = addonActive.cement ? 'flex' : 'none';
+    if (togBtn) { togBtn.classList.toggle('active', addonActive.cement); togBtn.innerText = addonActive.cement ? '取消' : '加購'; }
+    if (valEl) valEl.innerText = addonQtys.cement;
+}
+
 function toggleAddon(type) {
-    // 水泥底盤：購物車內沒有任何相容盆 → 擋下並提醒
-    if (type === 'cement' && !addonActive.cement && cementCompatibleCount() === 0) {
-        showAddonAlert();
+    if (type === 'cement' && !addonActive.cement && getCementEligibleQty() <= 0) {
+        showToast(CEMENT_LIMIT_NOTICE);
         return;
     }
     addonActive[type] = !addonActive[type];
@@ -1165,9 +1166,8 @@ function toggleAddon(type) {
     saveState(); updatePriceSummary();
 }
 function changeAddonQty(type, d) {
-    // 水泥底盤：按「+」不可超過購物車相容盆總數
-    if (type === 'cement' && d > 0 && addonQtys.cement >= cementCompatibleCount()) {
-        showAddonAlert();
+    if (type === 'cement' && d > 0 && addonQtys.cement >= getCementEligibleQty()) {
+        showToast(CEMENT_LIMIT_NOTICE);
         return;
     }
     addonQtys[type] = Math.max(1, addonQtys[type] + d);
@@ -1190,21 +1190,6 @@ function selectRegion(btn){
 }
 
 function updatePriceSummary(){
-    // 水泥底盤數量自動夾回相容盆總數（刪/減品項時連動，降到 0 自動取消加購）
-    if (addonActive.cement) {
-        const cc = cementCompatibleCount();
-        if (cc <= 0) {
-            addonActive.cement = false;
-            addonQtys.cement = 1;
-            document.getElementById('addon-cement')?.classList.remove('selected');
-            const cq=document.getElementById('addon-qty-cement'); if(cq) cq.style.display='none';
-            const ct=document.getElementById('addon-tog-cement'); if(ct){ ct.classList.remove('active'); ct.innerText='加購'; }
-            const cv=document.getElementById('addon-val-cement'); if(cv) cv.innerText='1';
-        } else if (addonQtys.cement > cc) {
-            addonQtys.cement = cc;
-            const cv=document.getElementById('addon-val-cement'); if(cv) cv.innerText=cc;
-        }
-    }
     const sub=Object.values(cart).reduce((a,b)=>a+(b.price*b.qty),0);
     const addonCost=getAddonCost();
     document.getElementById('sub-total').innerText=`NT$ ${sub}`;
