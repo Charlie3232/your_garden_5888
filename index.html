@@ -193,6 +193,11 @@
         #toast-notice.toast-modal { top:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(78,90,77,0.92); padding:26px 36px; border-radius:24px; font-size:0.82rem; line-height:2; backdrop-filter:blur(8px); opacity:0; width:max-content; max-width:85vw; transition:all 0.3s ease; }
         #toast-notice.toast-modal.show { opacity:1; transform:translate(-50%,-50%) scale(1); }
         .toast-highlight { color:#e0aaa8; font-weight:700; }
+        .toast-nowrap { white-space:nowrap; display:inline-block; }
+        .toast-actions { display:flex; justify-content:center; gap:10px; margin-top:14px; }
+        .toast-action-btn { min-width:96px; padding:9px 14px; border-radius:12px; border:1.5px solid rgba(255,255,255,0.65); font-family:inherit; font-size:0.8rem; font-weight:700; cursor:pointer; }
+        .toast-action-btn.primary { background:white; color:var(--accent-green); border-color:white; }
+        .toast-action-btn.secondary { background:transparent; color:white; }
 
         /* ── 載入中/完成提示 ── */
         #loading-notice { display:none; position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.8); background:rgba(130,125,120,0.88); color:white; padding:26px 36px; border-radius:24px; z-index:5000; font-size:0.95rem; text-align:center; backdrop-filter:blur(8px); pointer-events:none; line-height:2; transition:all 0.3s ease; opacity:0; width:max-content; max-width:85vw; }
@@ -1120,7 +1125,12 @@ const CEMENT_ALLOWED_POTS = [
     '12*12圓筒水泥盆',
     '14*14水滴水泥盆'
 ];
-const CEMENT_LIMIT_NOTICE = '因水泥底盤承重限制,<br><span class="toast-highlight">僅適用 10*10水滴水泥盆、12*12圓筒水泥盆、14*14水滴水泥盆。</span><br>其他尺寸請改用透明底盤或滾輪底盤~~ 🌿';
+const CEMENT_LIMIT_NOTICE = `
+    <div>因水泥底盤承重限制,僅適用 :</div>
+    <div class="toast-highlight"><span class="toast-nowrap">10*10水滴水泥盆</span> ,<span class="toast-nowrap">12*12圓筒水泥盆</span>,</div>
+    <div class="toast-highlight">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="toast-nowrap">14*14水滴水泥盆</span></div>
+    <div>其他尺寸請改用 透明底盤 或 滾輪底盤~~ 🌿</div>
+`;
 
 function normalizePotLabel(label) {
     return String(label||'').replace(/\s+/g,'').replace(/[xX×]/g,'*');
@@ -1133,13 +1143,6 @@ function getCementEligibleQty() {
 }
 
 function syncCementAddonLimit() {
-    const limit = getCementEligibleQty();
-    if (limit <= 0) {
-        addonActive.cement = false;
-        addonQtys.cement = 1;
-    } else if (addonActive.cement && addonQtys.cement > limit) {
-        addonQtys.cement = limit;
-    }
     const card = document.getElementById('addon-cement');
     const qtyDiv = document.getElementById('addon-qty-cement');
     const togBtn = document.getElementById('addon-tog-cement');
@@ -1150,17 +1153,7 @@ function syncCementAddonLimit() {
     if (valEl) valEl.innerText = addonQtys.cement;
 }
 
-function showCementLimitNotice() {
-    showToast(CEMENT_LIMIT_NOTICE, { html:true, modal:true, duration:2000 });
-}
-
-function toggleAddon(type) {
-    if (type === 'cement' && !addonActive.cement && getCementEligibleQty() <= 0) {
-        showCementLimitNotice();
-        return;
-    }
-    addonActive[type] = !addonActive[type];
-    if (!addonActive[type]) addonQtys[type] = 1;
+function applyAddonUI(type) {
     const card   = document.getElementById(`addon-${type}`);
     const qtyDiv = document.getElementById(`addon-qty-${type}`);
     const togBtn = document.getElementById(`addon-tog-${type}`);
@@ -1170,11 +1163,46 @@ function toggleAddon(type) {
     togBtn.classList.toggle('active', addonActive[type]);
     togBtn.innerText = addonActive[type] ? '取消' : '加購';
     if (addonActive[type]) valEl.innerText = addonQtys[type];
+}
+
+function addCementAddonAfterConfirm() {
+    addonActive.cement = true;
+    addonQtys.cement = (addonQtys.cement || 1);
+    applyAddonUI('cement');
+    saveState(); updatePriceSummary();
+}
+
+function increaseCementAddonAfterConfirm() {
+    addonQtys.cement = Math.max(1, addonQtys.cement + 1);
+    document.getElementById('addon-val-cement').innerText = addonQtys.cement;
+    saveState(); updatePriceSummary();
+}
+
+function showCementConfirm(onConfirm) {
+    showToast(CEMENT_LIMIT_NOTICE, {
+        html:true,
+        modal:true,
+        persist:true,
+        actions:[
+            { label:'仍要加購', className:'primary', onClick:onConfirm },
+            { label:'取消加購', className:'secondary' }
+        ]
+    });
+}
+
+function toggleAddon(type) {
+    if (type === 'cement' && !addonActive.cement && getCementEligibleQty() <= 0) {
+        showCementConfirm(addCementAddonAfterConfirm);
+        return;
+    }
+    addonActive[type] = !addonActive[type];
+    if (!addonActive[type]) addonQtys[type] = 1;
+    applyAddonUI(type);
     saveState(); updatePriceSummary();
 }
 function changeAddonQty(type, d) {
     if (type === 'cement' && d > 0 && addonQtys.cement >= getCementEligibleQty()) {
-        showCementLimitNotice();
+        showCementConfirm(increaseCementAddonAfterConfirm);
         return;
     }
     addonQtys[type] = Math.max(1, addonQtys[type] + d);
@@ -1349,16 +1377,38 @@ function showToast(msg, opts){
     t.className = options.modal ? 'toast-modal' : '';
     if (options.html) t.innerHTML=msg;
     else t.innerText=msg;
+    if (options.actions && options.actions.length) {
+        const actions = document.createElement('div');
+        actions.className = 'toast-actions';
+        options.actions.forEach(action => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = `toast-action-btn ${action.className || ''}`.trim();
+            btn.innerText = action.label;
+            btn.onclick = () => {
+                closeToast(t, options.modal);
+                if (typeof action.onClick === 'function') action.onClick();
+            };
+            actions.appendChild(btn);
+        });
+        t.appendChild(actions);
+    }
     t.style.display='block';
     if (options.modal) setTimeout(()=>t.classList.add('show'), 20);
-    t._toastTimer=setTimeout(()=>{
-        if (options.modal) {
-            t.classList.remove('show');
-            setTimeout(()=>{ t.style.display='none'; t.className=''; }, 300);
-        } else {
-            t.style.display='none';
-        }
-    }, options.duration || 2500);
+    if (!options.persist) {
+        t._toastTimer=setTimeout(()=>closeToast(t, options.modal), options.duration || 2500);
+    }
+}
+function closeToast(t, isModal){
+    clearTimeout(t._toastTimer);
+    if (isModal) {
+        t.classList.remove('show');
+        setTimeout(()=>{ t.style.display='none'; t.className=''; t.innerHTML=''; }, 300);
+    } else {
+        t.style.display='none';
+        t.className='';
+        t.innerHTML='';
+    }
 }
 function shufflePlants(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}}
 document.getElementById('footer-year').innerText=new Date().getFullYear();
