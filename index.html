@@ -693,10 +693,10 @@ function renderCards() {
     container.innerHTML = '';
     const instock  = plantsData.filter(p=>{ const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout'); return vis.some(v=>v.status==='instock'); });
     const preorder = plantsData.filter(p=>{ const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout'); return vis.length>0&&vis.every(v=>v.status==='preorder'); });
-    [...instock,...preorder].forEach(p=>{
+    const cardHtml = [...instock,...preorder].map(p=>{
         const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
         const isPreorder=vis.every(v=>v.status==='preorder');
-        container.innerHTML+=`
+        return `
         <div class="plant-card" data-id="${p.plant_id}" data-name="${p.name}" data-tags="${(p.tags||[]).join(',')}" onclick="openProduct('${p.plant_id}')">
             <div class="img-mask"><img src="${getCardImageSrc(p.card_img)}" alt="${p.name}" loading="lazy" decoding="async"></div>
             <div class="card-info">
@@ -704,7 +704,8 @@ function renderCards() {
                 ${isPreorder?'<div class="preorder-label">較長備貨（7-10天）</div>':''}
             </div>
         </div>`;
-    });
+    }).join('');
+    container.innerHTML = cardHtml;
 }
 
 function getCardImageSrc(src) {
@@ -727,12 +728,24 @@ function renderModals() {
         const vis=p.variants.filter(v=>v.status!=='hidden').sort((a,b)=>a.height_min-b.height_min);
         const def=vis.find(v=>v.status!=='soldout')||vis[0];
         selectedVariant[p.plant_id]=def;
+    });
+}
+
+function ensureProductModal(plantId) {
+    const existing = document.getElementById(plantId+'Overlay');
+    if (existing) return existing;
+    const p=plantsData.find(pl=>pl.plant_id===plantId);
+    if(!p) return null;
+    const box=document.getElementById('modal-container');
+    const vis=p.variants.filter(v=>v.status!=='hidden').sort((a,b)=>a.height_min-b.height_min);
+    const def=selectedVariant[p.plant_id] || vis.find(v=>v.status!=='soldout') || vis[0];
+    selectedVariant[p.plant_id]=def;
         const variantBtns=vis.map(v=>{
             const cls=v.status==='soldout'?'v-soldout':v.status==='preorder'?'v-preorder':'';
             const sel=v.variant_id===def?.variant_id?'selected':'';
             return `<button class="variant-btn ${cls} ${sel}" ${v.status==='soldout'?'disabled':''} data-vid="${v.variant_id}" onclick="selectVariant('${p.plant_id}','${v.variant_id}')">${v.pot_label}</button>`;
         }).join('');
-        box.innerHTML+=`
+    box.insertAdjacentHTML('beforeend', `
         <div id="${p.plant_id}Overlay" class="detail-overlay">
             <div class="detail-content">
                 <button class="close-btn" onclick="closeProduct('${p.plant_id}')">&times;</button>
@@ -766,8 +779,8 @@ function renderModals() {
                     </div>
                 </div>
             </div>
-        </div>`;
-    });
+        </div>`);
+    return document.getElementById(plantId+'Overlay');
 }
 
 function renderVInfo(v) {
@@ -788,11 +801,14 @@ function setGalleryImages(plantId, images) {
 }
 
 function selectVariant(plantId, variantId) {
+    ensureProductModal(plantId);
     const p=plantsData.find(pl=>pl.plant_id===plantId);
     const v=p?.variants.find(vv=>vv.variant_id===variantId);
     if(!v||v.status==='soldout') return;
     selectedVariant[plantId]=v;
-    document.getElementById(plantId+'Overlay').querySelectorAll('.variant-btn').forEach(btn=>{
+    const overlay=document.getElementById(plantId+'Overlay');
+    if(!overlay) return;
+    overlay.querySelectorAll('.variant-btn').forEach(btn=>{
         btn.classList.toggle('selected',btn.dataset.vid===variantId);
     });
     document.getElementById(`vinfo-${plantId}`).innerHTML=renderVInfo(v);
@@ -1033,15 +1049,18 @@ function applyFilters() {
 
 function openProduct(id) {
     openPlantId = id;                                   // ④
+    const overlay = ensureProductModal(id);
+    if(!overlay) return;
     const v = selectedVariant[id];
     if (v) setGalleryImages(id, v.images);
-    document.getElementById(id+'Overlay').style.display='block';
+    overlay.style.display='block';
     document.body.style.overflow='hidden';
     syncOpenProductUrl(id);
     saveState();                                        // ④
 }
 function closeProduct(id) {
-    document.getElementById(id+'Overlay').style.display='none';
+    const overlay=document.getElementById(id+'Overlay');
+    if(overlay) overlay.style.display='none';
     document.body.style.overflow='auto';
     openPlantId = null;                                 // ④
     history.pushState(null,'',window.location.pathname);
@@ -1051,7 +1070,7 @@ window.addEventListener('popstate', e=>{
     document.querySelectorAll('.detail-overlay').forEach(o=>o.style.display='none');
     document.body.style.overflow='auto';
     openPlantId = null;
-    if(e.state?.modal){ const el=document.getElementById(e.state.modal+'Overlay'); if(el){ const v=selectedVariant[e.state.modal]; if(v) setGalleryImages(e.state.modal, v.images); el.style.display='block';document.body.style.overflow='hidden'; openPlantId=e.state.modal;} }
+    if(e.state?.modal){ const el=ensureProductModal(e.state.modal); if(el){ const v=selectedVariant[e.state.modal]; if(v) setGalleryImages(e.state.modal, v.images); el.style.display='block';document.body.style.overflow='hidden'; openPlantId=e.state.modal;} }
     saveState();
 });
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').style.display='flex';}
