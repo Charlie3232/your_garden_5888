@@ -562,6 +562,11 @@ function setCache(plants, tags) {
     } catch(e){}
 }
 
+function hasShareOrFilterParams() {
+    const params = new URLSearchParams(location.search);
+    return ['p','id','tag','sp','space','su','sun','h','height','kw'].some(key => params.has(key));
+}
+
 function restoreUI() {
     updateCartCount();
     ADDON_KEYS.forEach(type => {
@@ -595,11 +600,9 @@ function restoreUI() {
         hideAllCards();
     }
 
-    /* ④ 還原詳情頁：若網址沒有植物分享參數（分享連結優先），自動重新打開上次的植物 */
+    /* ④ 還原詳情頁：若網址沒有植物/篩選分享參數，才自動重新打開上次的植物 */
     try {
-        const params = new URLSearchParams(location.search);
-        const hasProductParam = params.get('p') || params.get('id');
-        if (!hasProductParam) {
+        if (!hasShareOrFilterParams()) {
             const savedPid = localStorage.getItem('yg_open_plant');
             if (savedPid && plantsData.find(p=>p.plant_id===savedPid)) {
                 const savedVid = localStorage.getItem('yg_open_variant');
