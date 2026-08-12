@@ -562,23 +562,6 @@ function setCache(plants, tags) {
     } catch(e){}
 }
 
-function clearPlantDataCache() {
-    try {
-        sessionStorage.removeItem(CACHE_PLANTS);
-        sessionStorage.removeItem(CACHE_TAGS);
-        sessionStorage.removeItem(CACHE_TIME);
-    } catch(e){}
-}
-
-function apiUrl(action) {
-    return `${SCRIPT_URL}?action=${action}&_=${Date.now()}`;
-}
-
-function hasShareOrFilterParams() {
-    const params = new URLSearchParams(location.search);
-    return ['p','id','tag','sp','space','su','sun','h','height','kw'].some(key => params.has(key));
-}
-
 function restoreUI() {
     updateCartCount();
     ADDON_KEYS.forEach(type => {
@@ -612,9 +595,11 @@ function restoreUI() {
         hideAllCards();
     }
 
-    /* ④ 還原詳情頁：若網址沒有植物/篩選分享參數，才自動重新打開上次的植物 */
+    /* ④ 還原詳情頁：若網址沒有植物分享參數（分享連結優先），自動重新打開上次的植物 */
     try {
-        if (!hasShareOrFilterParams()) {
+        const params = new URLSearchParams(location.search);
+        const hasProductParam = params.get('p') || params.get('id');
+        if (!hasProductParam) {
             const savedPid = localStorage.getItem('yg_open_plant');
             if (savedPid && plantsData.find(p=>p.plant_id===savedPid)) {
                 const savedVid = localStorage.getItem('yg_open_variant');
@@ -626,7 +611,6 @@ function restoreUI() {
 }
 
 async function loadPlants() {
-    if (new URLSearchParams(location.search).has('refresh')) clearPlantDataCache();
     /* ① 有有效快取（5 小時內）→ 直接用快取還原，不重新 fetch、不跳 loading 框 */
     const cached = getCachedPlants();
     if (cached) {
@@ -639,7 +623,6 @@ async function loadPlants() {
         restoreUI();
         checkUrlParam();
         applyUrlParams();
-        refreshPlantsInBackground();
         return;
     }
 
@@ -651,14 +634,16 @@ async function loadPlants() {
     const ln=document.getElementById('loading-notice');
     ln.style.display='block';
     setTimeout(()=>ln.classList.add('show'),50);
-    fetch(apiUrl('trackVisit')).catch(()=>{});
+    fetch(`${SCRIPT_URL}?action=trackVisit`).catch(()=>{});
+    let loadedTags = null;
     try {
-        const [tagJson, json] = await Promise.all([
-            fetch(apiUrl('getTags')).then(res=>res.json()).catch(()=>null),
-            fetch(apiUrl('getPlants')).then(res=>res.json())
-        ]);
-        const loadedTags = (tagJson && tagJson.success && tagJson.tags.length) ? tagJson.tags : null;
-        if (loadedTags) renderTagPills(loadedTags);
+        const tagRes  = await fetch(`${SCRIPT_URL}?action=getTags`);
+        const tagJson = await tagRes.json();
+        if (tagJson.success && tagJson.tags.length) { loadedTags = tagJson.tags; renderTagPills(tagJson.tags); }
+    } catch(e){}
+    try {
+        const res  = await fetch(`${SCRIPT_URL}?action=getPlants`);
+        const json = await res.json();
         if (json.success) {
             plantsData = json.plants;
             shufflePlants(plantsData);
@@ -692,25 +677,6 @@ async function loadPlants() {
         showLoadError();
     }
 }
-
-async function refreshPlantsInBackground() {
-    try {
-        const [tagJson, json] = await Promise.all([
-            fetch(apiUrl('getTags')).then(res=>res.json()).catch(()=>null),
-            fetch(apiUrl('getPlants')).then(res=>res.json())
-        ]);
-        if (!json || !json.success) return;
-        const loadedTags = (tagJson && tagJson.success && tagJson.tags.length) ? tagJson.tags : getCachedTags();
-        plantsData = json.plants;
-        setCache(plantsData, loadedTags);
-        if (loadedTags) renderTagPills(loadedTags);
-        renderCards();
-        renderModals();
-        restoreUI();
-        checkUrlParam();
-        applyUrlParams();
-    } catch(e){}
-}
 function showLoadError() {
     document.getElementById('product-container').innerHTML=`
     <div class="loading-msg" style="color:#999;grid-column:1/-1;">
@@ -724,10 +690,10 @@ function renderCards() {
     container.innerHTML = '';
     const instock  = plantsData.filter(p=>{ const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout'); return vis.some(v=>v.status==='instock'); });
     const preorder = plantsData.filter(p=>{ const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout'); return vis.length>0&&vis.every(v=>v.status==='preorder'); });
-    const cardHtml = [...instock,...preorder].map(p=>{
+    [...instock,...preorder].forEach(p=>{
         const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
         const isPreorder=vis.every(v=>v.status==='preorder');
-        return `
+        container.innerHTML+=`
         <div class="plant-card" data-id="${p.plant_id}" data-name="${p.name}" data-tags="${(p.tags||[]).join(',')}" onclick="openProduct('${p.plant_id}')">
             <div class="img-mask"><img src="${getCardImageSrc(p.card_img)}" alt="${p.name}" loading="lazy" decoding="async"></div>
             <div class="card-info">
@@ -735,8 +701,7 @@ function renderCards() {
                 ${isPreorder?'<div class="preorder-label">較長備貨（7-10天）</div>':''}
             </div>
         </div>`;
-    }).join('');
-    container.innerHTML = cardHtml;
+    });
 }
 
 function getCardImageSrc(src) {
@@ -759,24 +724,12 @@ function renderModals() {
         const vis=p.variants.filter(v=>v.status!=='hidden').sort((a,b)=>a.height_min-b.height_min);
         const def=vis.find(v=>v.status!=='soldout')||vis[0];
         selectedVariant[p.plant_id]=def;
-    });
-}
-
-function ensureProductModal(plantId) {
-    const existing = document.getElementById(plantId+'Overlay');
-    if (existing) return existing;
-    const p=plantsData.find(pl=>pl.plant_id===plantId);
-    if(!p) return null;
-    const box=document.getElementById('modal-container');
-    const vis=p.variants.filter(v=>v.status!=='hidden').sort((a,b)=>a.height_min-b.height_min);
-    const def=selectedVariant[p.plant_id] || vis.find(v=>v.status!=='soldout') || vis[0];
-    selectedVariant[p.plant_id]=def;
         const variantBtns=vis.map(v=>{
             const cls=v.status==='soldout'?'v-soldout':v.status==='preorder'?'v-preorder':'';
             const sel=v.variant_id===def?.variant_id?'selected':'';
             return `<button class="variant-btn ${cls} ${sel}" ${v.status==='soldout'?'disabled':''} data-vid="${v.variant_id}" onclick="selectVariant('${p.plant_id}','${v.variant_id}')">${v.pot_label}</button>`;
         }).join('');
-    box.insertAdjacentHTML('beforeend', `
+        box.innerHTML+=`
         <div id="${p.plant_id}Overlay" class="detail-overlay">
             <div class="detail-content">
                 <button class="close-btn" onclick="closeProduct('${p.plant_id}')">&times;</button>
@@ -810,8 +763,8 @@ function ensureProductModal(plantId) {
                     </div>
                 </div>
             </div>
-        </div>`);
-    return document.getElementById(plantId+'Overlay');
+        </div>`;
+    });
 }
 
 function renderVInfo(v) {
@@ -832,14 +785,11 @@ function setGalleryImages(plantId, images) {
 }
 
 function selectVariant(plantId, variantId) {
-    ensureProductModal(plantId);
     const p=plantsData.find(pl=>pl.plant_id===plantId);
     const v=p?.variants.find(vv=>vv.variant_id===variantId);
     if(!v||v.status==='soldout') return;
     selectedVariant[plantId]=v;
-    const overlay=document.getElementById(plantId+'Overlay');
-    if(!overlay) return;
-    overlay.querySelectorAll('.variant-btn').forEach(btn=>{
+    document.getElementById(plantId+'Overlay').querySelectorAll('.variant-btn').forEach(btn=>{
         btn.classList.toggle('selected',btn.dataset.vid===variantId);
     });
     document.getElementById(`vinfo-${plantId}`).innerHTML=renderVInfo(v);
@@ -1080,18 +1030,15 @@ function applyFilters() {
 
 function openProduct(id) {
     openPlantId = id;                                   // ④
-    const overlay = ensureProductModal(id);
-    if(!overlay) return;
     const v = selectedVariant[id];
     if (v) setGalleryImages(id, v.images);
-    overlay.style.display='block';
+    document.getElementById(id+'Overlay').style.display='block';
     document.body.style.overflow='hidden';
     syncOpenProductUrl(id);
     saveState();                                        // ④
 }
 function closeProduct(id) {
-    const overlay=document.getElementById(id+'Overlay');
-    if(overlay) overlay.style.display='none';
+    document.getElementById(id+'Overlay').style.display='none';
     document.body.style.overflow='auto';
     openPlantId = null;                                 // ④
     history.pushState(null,'',window.location.pathname);
@@ -1101,7 +1048,7 @@ window.addEventListener('popstate', e=>{
     document.querySelectorAll('.detail-overlay').forEach(o=>o.style.display='none');
     document.body.style.overflow='auto';
     openPlantId = null;
-    if(e.state?.modal){ const el=ensureProductModal(e.state.modal); if(el){ const v=selectedVariant[e.state.modal]; if(v) setGalleryImages(e.state.modal, v.images); el.style.display='block';document.body.style.overflow='hidden'; openPlantId=e.state.modal;} }
+    if(e.state?.modal){ const el=document.getElementById(e.state.modal+'Overlay'); if(el){ const v=selectedVariant[e.state.modal]; if(v) setGalleryImages(e.state.modal, v.images); el.style.display='block';document.body.style.overflow='hidden'; openPlantId=e.state.modal;} }
     saveState();
 });
 function openLightbox(src){document.getElementById('lightbox-img').src=src;document.getElementById('lightbox').style.display='flex';}
