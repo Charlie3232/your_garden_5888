@@ -540,26 +540,67 @@ function restoreState() {
 }
 
 /* ────────── ①② 快取存取 ────────── */
+function getPlantCacheStorage() {
+    try {
+        if (typeof localStorage !== 'undefined') return localStorage;
+    } catch(e){}
+    return sessionStorage;
+}
 function getCachedPlants() {
     try {
-        const t = parseInt(sessionStorage.getItem(CACHE_TIME) || '0', 10);
+        const storage = getPlantCacheStorage();
+        const t = parseInt(storage.getItem(CACHE_TIME) || '0', 10);
         if (!t || (Date.now() - t) > CACHE_TTL) return null;   // 超過 5 小時視為過期
-        const raw = sessionStorage.getItem(CACHE_PLANTS);
+        const raw = storage.getItem(CACHE_PLANTS);
         if (!raw) return null;
         const arr = JSON.parse(raw);
         return (Array.isArray(arr) && arr.length) ? arr : null;
     } catch(e){ return null; }
 }
 function getCachedTags() {
-    try { const r = sessionStorage.getItem(CACHE_TAGS); return r ? JSON.parse(r) : null; }
+    try { const r = getPlantCacheStorage().getItem(CACHE_TAGS); return r ? JSON.parse(r) : null; }
     catch(e){ return null; }
 }
 function setCache(plants, tags) {
     try {
-        sessionStorage.setItem(CACHE_PLANTS, JSON.stringify(plants||[]));
-        if (tags) sessionStorage.setItem(CACHE_TAGS, JSON.stringify(tags));
-        sessionStorage.setItem(CACHE_TIME, String(Date.now()));
+        const storage = getPlantCacheStorage();
+        storage.setItem(CACHE_PLANTS, JSON.stringify(plants||[]));
+        if (tags) storage.setItem(CACHE_TAGS, JSON.stringify(tags));
+        storage.setItem(CACHE_TIME, String(Date.now()));
     } catch(e){}
+}
+
+function clearPlantDataCache() {
+    try {
+        const storage = getPlantCacheStorage();
+        storage.removeItem(CACHE_PLANTS);
+        storage.removeItem(CACHE_TAGS);
+        storage.removeItem(CACHE_TIME);
+    } catch(e){}
+}
+
+function apiUrl(action) {
+    return `${SCRIPT_URL}?action=${action}&_=${Date.now()}_${Math.random().toString(36).slice(2)}`;
+}
+
+async function fetchJsonWithRetry(action, tries=3) {
+    let lastError = null;
+    for (let i=0; i<tries; i++) {
+        try {
+            const res = await fetch(apiUrl(action), { cache:'no-store' });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } catch(e) {
+            lastError = e;
+            await new Promise(resolve => setTimeout(resolve, 600 + i * 700));
+        }
+    }
+    throw lastError;
+}
+
+function hasShareOrFilterParams() {
+    const params = new URLSearchParams(location.search);
+    return ['p','id','tag','sp','space','su','sun','h','height','kw'].some(key => params.has(key));
 }
 
 function restoreUI() {
@@ -595,11 +636,9 @@ function restoreUI() {
         hideAllCards();
     }
 
-    /* ④ 還原詳情頁：若網址沒有植物分享參數（分享連結優先），自動重新打開上次的植物 */
+    /* ④ 還原詳情頁：若網址沒有植物/篩選分享參數，才自動重新打開上次的植物 */
     try {
-        const params = new URLSearchParams(location.search);
-        const hasProductParam = params.get('p') || params.get('id');
-        if (!hasProductParam) {
+        if (!hasShareOrFilterParams()) {
             const savedPid = localStorage.getItem('yg_open_plant');
             if (savedPid && plantsData.find(p=>p.plant_id===savedPid)) {
                 const savedVid = localStorage.getItem('yg_open_variant');
@@ -611,7 +650,9 @@ function restoreUI() {
 }
 
 async function loadPlants() {
-    /* ① 有有效快取（5 小時內）→ 直接用快取還原，不重新 fetch、不跳 loading 框 */
+    if (new URLSearchParams(location.search).has('refresh')) clearPlantDataCache();
+
+    /* ① 有有效快取 → 先顯示，再背景抓最新版，避免 IG 瀏覽器卡在空白 */
     const cached = getCachedPlants();
     if (cached) {
         plantsData = cached;
@@ -623,6 +664,7 @@ async function loadPlants() {
         restoreUI();
         checkUrlParam();
         applyUrlParams();
+        refreshPlantsInBackground();
         return;
     }
 
@@ -634,16 +676,14 @@ async function loadPlants() {
     const ln=document.getElementById('loading-notice');
     ln.style.display='block';
     setTimeout(()=>ln.classList.add('show'),50);
-    fetch(`${SCRIPT_URL}?action=trackVisit`).catch(()=>{});
-    let loadedTags = null;
+    fetch(apiUrl('trackVisit'), { cache:'no-store' }).catch(()=>{});
     try {
-        const tagRes  = await fetch(`${SCRIPT_URL}?action=getTags`);
-        const tagJson = await tagRes.json();
-        if (tagJson.success && tagJson.tags.length) { loadedTags = tagJson.tags; renderTagPills(tagJson.tags); }
-    } catch(e){}
-    try {
-        const res  = await fetch(`${SCRIPT_URL}?action=getPlants`);
-        const json = await res.json();
+        const [tagJson, json] = await Promise.all([
+            fetchJsonWithRetry('getTags').catch(()=>null),
+            fetchJsonWithRetry('getPlants')
+        ]);
+        const loadedTags = (tagJson && tagJson.success && tagJson.tags.length) ? tagJson.tags : null;
+        if (loadedTags) renderTagPills(loadedTags);
         if (json.success) {
             plantsData = json.plants;
             shufflePlants(plantsData);
@@ -677,6 +717,45 @@ async function loadPlants() {
         showLoadError();
     }
 }
+
+function finishPlantLoad(showSuccess=true) {
+    isLoading = false;
+    const ln=document.getElementById('loading-notice');
+    ln.classList.remove('show');
+    setTimeout(()=>ln.style.display='none', 300);
+    ['ftbtn-detail','ftbtn-lazy','ftbtn-keyword'].forEach(id=>{
+        const b=document.getElementById(id);
+        if(b){ b.style.opacity=''; b.style.cursor=''; b.style.pointerEvents=''; }
+    });
+    if (showSuccess) {
+        const sn = document.getElementById('success-notice');
+        sn.style.display='block';
+        setTimeout(()=>sn.classList.add('show'), 50);
+        setTimeout(()=>{ sn.classList.remove('show'); setTimeout(()=>sn.style.display='none', 350); }, 2200);
+    }
+    restoreUI();
+    checkUrlParam();
+    applyUrlParams();
+}
+
+async function refreshPlantsInBackground() {
+    try {
+        const [tagJson, json] = await Promise.all([
+            fetchJsonWithRetry('getTags').catch(()=>null),
+            fetchJsonWithRetry('getPlants')
+        ]);
+        if (!json || !json.success) return;
+        const loadedTags = (tagJson && tagJson.success && tagJson.tags.length) ? tagJson.tags : getCachedTags();
+        plantsData = json.plants;
+        setCache(plantsData, loadedTags);
+        if (loadedTags) renderTagPills(loadedTags);
+        renderCards();
+        renderModals();
+        restoreUI();
+        checkUrlParam();
+        applyUrlParams();
+    } catch(e){}
+}
 function showLoadError() {
     document.getElementById('product-container').innerHTML=`
     <div class="loading-msg" style="color:#999;grid-column:1/-1;">
@@ -690,10 +769,10 @@ function renderCards() {
     container.innerHTML = '';
     const instock  = plantsData.filter(p=>{ const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout'); return vis.some(v=>v.status==='instock'); });
     const preorder = plantsData.filter(p=>{ const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout'); return vis.length>0&&vis.every(v=>v.status==='preorder'); });
-    [...instock,...preorder].forEach(p=>{
+    const cardHtml = [...instock,...preorder].map(p=>{
         const vis=p.variants.filter(v=>v.status!=='hidden'&&v.status!=='soldout');
         const isPreorder=vis.every(v=>v.status==='preorder');
-        container.innerHTML+=`
+        return `
         <div class="plant-card" data-id="${p.plant_id}" data-name="${p.name}" data-tags="${(p.tags||[]).join(',')}" onclick="openProduct('${p.plant_id}')">
             <div class="img-mask"><img src="${getCardImageSrc(p.card_img)}" alt="${p.name}" loading="lazy" decoding="async"></div>
             <div class="card-info">
@@ -701,7 +780,8 @@ function renderCards() {
                 ${isPreorder?'<div class="preorder-label">較長備貨（7-10天）</div>':''}
             </div>
         </div>`;
-    });
+    }).join('');
+    container.innerHTML = cardHtml;
 }
 
 function getCardImageSrc(src) {
