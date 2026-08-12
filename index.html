@@ -562,6 +562,18 @@ function setCache(plants, tags) {
     } catch(e){}
 }
 
+function clearPlantDataCache() {
+    try {
+        sessionStorage.removeItem(CACHE_PLANTS);
+        sessionStorage.removeItem(CACHE_TAGS);
+        sessionStorage.removeItem(CACHE_TIME);
+    } catch(e){}
+}
+
+function apiUrl(action) {
+    return `${SCRIPT_URL}?action=${action}&_=${Date.now()}`;
+}
+
 function hasShareOrFilterParams() {
     const params = new URLSearchParams(location.search);
     return ['p','id','tag','sp','space','su','sun','h','height','kw'].some(key => params.has(key));
@@ -614,6 +626,7 @@ function restoreUI() {
 }
 
 async function loadPlants() {
+    if (new URLSearchParams(location.search).has('refresh')) clearPlantDataCache();
     /* ① 有有效快取（5 小時內）→ 直接用快取還原，不重新 fetch、不跳 loading 框 */
     const cached = getCachedPlants();
     if (cached) {
@@ -626,6 +639,7 @@ async function loadPlants() {
         restoreUI();
         checkUrlParam();
         applyUrlParams();
+        refreshPlantsInBackground();
         return;
     }
 
@@ -637,16 +651,14 @@ async function loadPlants() {
     const ln=document.getElementById('loading-notice');
     ln.style.display='block';
     setTimeout(()=>ln.classList.add('show'),50);
-    fetch(`${SCRIPT_URL}?action=trackVisit`).catch(()=>{});
-    let loadedTags = null;
+    fetch(apiUrl('trackVisit')).catch(()=>{});
     try {
-        const tagRes  = await fetch(`${SCRIPT_URL}?action=getTags`);
-        const tagJson = await tagRes.json();
-        if (tagJson.success && tagJson.tags.length) { loadedTags = tagJson.tags; renderTagPills(tagJson.tags); }
-    } catch(e){}
-    try {
-        const res  = await fetch(`${SCRIPT_URL}?action=getPlants`);
-        const json = await res.json();
+        const [tagJson, json] = await Promise.all([
+            fetch(apiUrl('getTags')).then(res=>res.json()).catch(()=>null),
+            fetch(apiUrl('getPlants')).then(res=>res.json())
+        ]);
+        const loadedTags = (tagJson && tagJson.success && tagJson.tags.length) ? tagJson.tags : null;
+        if (loadedTags) renderTagPills(loadedTags);
         if (json.success) {
             plantsData = json.plants;
             shufflePlants(plantsData);
@@ -679,6 +691,25 @@ async function loadPlants() {
         });
         showLoadError();
     }
+}
+
+async function refreshPlantsInBackground() {
+    try {
+        const [tagJson, json] = await Promise.all([
+            fetch(apiUrl('getTags')).then(res=>res.json()).catch(()=>null),
+            fetch(apiUrl('getPlants')).then(res=>res.json())
+        ]);
+        if (!json || !json.success) return;
+        const loadedTags = (tagJson && tagJson.success && tagJson.tags.length) ? tagJson.tags : getCachedTags();
+        plantsData = json.plants;
+        setCache(plantsData, loadedTags);
+        if (loadedTags) renderTagPills(loadedTags);
+        renderCards();
+        renderModals();
+        restoreUI();
+        checkUrlParam();
+        applyUrlParams();
+    } catch(e){}
 }
 function showLoadError() {
     document.getElementById('product-container').innerHTML=`
