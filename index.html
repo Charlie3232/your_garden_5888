@@ -479,6 +479,10 @@
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbyR0Ji91FDSDPob2nNHRDAnpvpzG8EYn85PlLUG9ggZMzp45NVjvaVZuI_USsRwNBuy/exec';
+const SCRIPT_FALLBACK_URLS = [
+    'https://script.google.com/macros/s/AKfycbz9fn3CgrHVnpXi_umM9VLhedvKORRZtL21yk0Q7fOi_z50r2iCa0FeN7suT6gpE-CW/exec'
+];
+const STATIC_PLANTS_URL = 'plants.json';
 
 /* ────────── ①② 植物資料快取設定 ────────── */
 const CACHE_TTL    = 5 * 60 * 60 * 1000; // 5 小時
@@ -579,23 +583,37 @@ function clearPlantDataCache() {
     } catch(e){}
 }
 
-function apiUrl(action) {
-    return `${SCRIPT_URL}?action=${action}&_=${Date.now()}_${Math.random().toString(36).slice(2)}`;
+function apiUrl(baseUrl, action) {
+    return `${baseUrl}?action=${action}&_=${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
 
 async function fetchJsonWithRetry(action, tries=3) {
     let lastError = null;
-    for (let i=0; i<tries; i++) {
-        try {
-            const res = await fetch(apiUrl(action), { cache:'no-store' });
-            if (!res.ok) throw new Error(`HTTP ${res.status}`);
-            return await res.json();
-        } catch(e) {
-            lastError = e;
-            await new Promise(resolve => setTimeout(resolve, 600 + i * 700));
+    const urls = [SCRIPT_URL, ...SCRIPT_FALLBACK_URLS];
+    for (const baseUrl of urls) {
+        for (let i=0; i<tries; i++) {
+            try {
+                const res = await fetch(apiUrl(baseUrl, action), { cache:'no-store' });
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return await res.json();
+            } catch(e) {
+                lastError = e;
+                await new Promise(resolve => setTimeout(resolve, 600 + i * 700));
+            }
         }
     }
     throw lastError;
+}
+
+async function fetchStaticPlantsJson() {
+    const url = `${STATIC_PLANTS_URL}?v=${Date.now()}`;
+    const res = await fetch(url, { cache:'no-store' });
+    if (!res.ok) throw new Error(`static json HTTP ${res.status}`);
+    const json = await res.json();
+    if (!json || !json.success || !Array.isArray(json.plants)) {
+        throw new Error('static json 格式錯誤');
+    }
+    return json;
 }
 
 function hasShareOrFilterParams() {
@@ -676,13 +694,20 @@ async function loadPlants() {
     const ln=document.getElementById('loading-notice');
     ln.style.display='block';
     setTimeout(()=>ln.classList.add('show'),50);
-    fetch(apiUrl('trackVisit'), { cache:'no-store' }).catch(()=>{});
+    fetch(apiUrl(SCRIPT_URL, 'trackVisit'), { cache:'no-store' }).catch(()=>{});
     try {
-        const [tagJson, json] = await Promise.all([
-            fetchJsonWithRetry('getTags').catch(()=>null),
-            fetchJsonWithRetry('getPlants')
-        ]);
-        const loadedTags = (tagJson && tagJson.success && tagJson.tags.length) ? tagJson.tags : null;
+        let json;
+        try {
+            json = await fetchStaticPlantsJson();
+        } catch(e) {
+            const [tagJson, plantJson] = await Promise.all([
+                fetchJsonWithRetry('getTags').catch(()=>null),
+                fetchJsonWithRetry('getPlants')
+            ]);
+            json = plantJson;
+            if (!json.tags && tagJson && tagJson.success) json.tags = tagJson.tags;
+        }
+        const loadedTags = (json && json.tags && json.tags.length) ? json.tags : null;
         if (loadedTags) renderTagPills(loadedTags);
         if (json.success) {
             plantsData = json.plants;
@@ -740,12 +765,19 @@ function finishPlantLoad(showSuccess=true) {
 
 async function refreshPlantsInBackground() {
     try {
-        const [tagJson, json] = await Promise.all([
-            fetchJsonWithRetry('getTags').catch(()=>null),
-            fetchJsonWithRetry('getPlants')
-        ]);
+        let json;
+        try {
+            json = await fetchStaticPlantsJson();
+        } catch(e) {
+            const [tagJson, plantJson] = await Promise.all([
+                fetchJsonWithRetry('getTags').catch(()=>null),
+                fetchJsonWithRetry('getPlants')
+            ]);
+            json = plantJson;
+            if (!json.tags && tagJson && tagJson.success) json.tags = tagJson.tags;
+        }
         if (!json || !json.success) return;
-        const loadedTags = (tagJson && tagJson.success && tagJson.tags.length) ? tagJson.tags : getCachedTags();
+        const loadedTags = (json.tags && json.tags.length) ? json.tags : getCachedTags();
         plantsData = json.plants;
         setCache(plantsData, loadedTags);
         if (loadedTags) renderTagPills(loadedTags);
