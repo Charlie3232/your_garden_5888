@@ -829,19 +829,6 @@ function getCardImageSrc(src) {
     return raw;
 }
 
-function getDetailImageSrc(src) {
-    const raw = String(src||'');
-    if (!raw) return '';
-    try {
-        const url = new URL(raw);
-        if (url.hostname === 'drive.google.com' && url.pathname.includes('/thumbnail')) {
-            url.searchParams.set('sz', 'w800');
-            return url.toString();
-        }
-    } catch(e) {}
-    return raw;
-}
-
 function renderModals() {
     const box=document.getElementById('modal-container');
     box.innerHTML='';
@@ -902,7 +889,7 @@ function setGalleryImages(plantId, images) {
     if (!gallery) return;
     const imgs=[...(images||[])]; while(imgs.length<4) imgs.push(imgs[0]||'');
     gallery.querySelectorAll('.zoom-container').forEach((el,i)=>{
-        const src = getDetailImageSrc(imgs[i] || '');
+        const src = imgs[i] || '';
         const img = el.querySelector('img');
         if (img && img.src !== src) img.src = src;
         el.onclick = src ? ()=>openLightbox(src) : null;
